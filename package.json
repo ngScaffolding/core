@@ -10,7 +10,6 @@
     "test": "ng test",
     "lint": "ng lint"
   },
-  "private": true,
   "peerDependencies": {
     "@angular/animations": "~11.0.1",
     "@angular/common": "~11.0.1",
