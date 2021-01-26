@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AuditLog, AppSettings, ZuluDateHelper } from '@ngscaffolding/models';
+
 import { HttpClient } from '@angular/common/http';
 import { AppSettingsQuery } from '../appSettings/appSettings.query';
 import { timeout, retry, finalize } from 'rxjs/operators';
@@ -7,6 +7,9 @@ import { UserAuthenticationQuery } from '../userAuthentication/userAuthenticatio
 import { AuditLogStore } from './auditLog.store';
 import { AuditLogQuery } from './auditLog.query';
 import { v4 as uuid } from 'uuid';
+import { ZuluDateHelper } from '../../../public-api';
+import { AppSettings } from '../../models/coreModels/appSettings.model';
+import { AuditLog } from '../../models/coreModels/auditLog.model';
 
 @Injectable({
     providedIn: 'root'

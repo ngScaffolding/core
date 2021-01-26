@@ -3,11 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { UserAuthenticationQuery } from '../userAuthentication/userAuthentication.query';
 import { LoggingService } from '../logging/logging.service';
 import { RolesService } from '../rolesService/roles.service';
-import { IUserModel, AppSettings, ChangePasswordModel } from '@ngscaffolding/models';
 import { Observable } from 'rxjs';
 import { timeout } from 'rxjs/operators';
 import { UserServiceBase } from './user.service.base';
 import { AppSettingsService } from '../appSettings/appSettings.service';
+import { ChangePasswordModel } from '../../models/authModels/changePassword.model';
+import { IUserModel } from '../../models/authModels/IUser.model';
+import { AppSettings } from '../../models/coreModels/appSettings.model';
 
 
 @Injectable({

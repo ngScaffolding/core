@@ -1,5 +1,6 @@
-import { IUserModel, ChangePasswordModel } from '@ngscaffolding/models';
 import { Observable } from 'rxjs';
+import { ChangePasswordModel } from '../../models/authModels/changePassword.model';
+import { IUserModel } from '../../models/authModels/IUser.model';
 
 export abstract class  UserServiceBase {
     abstract getUser(userId: string): Observable<IUserModel>;

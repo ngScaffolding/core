@@ -6,11 +6,12 @@ import { UserAuthenticationQuery } from '../userAuthentication/userAuthenticatio
 import { AppSettingsService } from '../appSettings/appSettings.service';
 
 // Models
-import { UserPreferenceDefinition, UserPreferenceValue, AppSettings } from '@ngscaffolding/models';
 import { UserPreferencesStore } from './userPreferences.store';
 import { UserPreferencesQuery } from './userPreferences.query';
 import { LoggingService } from '../logging/logging.service';
 import { AppSettingsQuery } from '../appSettings/appSettings.query';
+import { AppSettings } from '../../models/coreModels/appSettings.model';
+import { UserPreferenceValue, UserPreferenceDefinition } from '../../models/coreModels/userPreference.model';
 
 @Injectable({
   providedIn: 'root'

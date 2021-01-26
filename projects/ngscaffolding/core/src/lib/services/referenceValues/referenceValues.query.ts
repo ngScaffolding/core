@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { QueryEntity } from '@datorama/akita';
+import { ReferenceValue } from '../../models/coreModels/referenceValue.model';
 import { ReferenceValuesStore, ReferenceValuesState } from './referenceValues.store';
-import { ReferenceValue } from '@ngscaffolding/models';
 
 @Injectable({
   providedIn: 'root'

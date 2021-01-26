@@ -3,11 +3,10 @@ import { HttpClient } from '@angular/common/http';
 import { AppSettingsQuery } from '../appSettings/appSettings.query';
 import { timeout, retry } from 'rxjs/operators';
 import { UserAuthenticationQuery } from '../userAuthentication/userAuthentication.query';
-import {
-  ApplicationLog,
-  AppSettings,
-  ZuluDateHelper,
-} from '@ngscaffolding/models';
+import { ZuluDateHelper } from '../../../public-api';
+import { ApplicationLog } from '../../models/coreModels/applicationLog.model';
+import { AppSettings } from '../../models/coreModels/appSettings.model';
+
 
 @Injectable({
   providedIn: 'root',
@@ -20,7 +19,7 @@ export class AppAuditService {
   ) {}
 
   public RecordLog(appLog: ApplicationLog): void {
-    let apiHome = this.appSettingsQuery.getEntity(AppSettings.apiHome).value;
+    const apiHome = this.appSettingsQuery.getEntity(AppSettings.apiHome).value;
 
     if (!appLog.logDate) {
       appLog.logDate = ZuluDateHelper.setGMTDate(new Date());

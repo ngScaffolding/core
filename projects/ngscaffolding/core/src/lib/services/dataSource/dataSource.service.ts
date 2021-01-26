@@ -4,16 +4,15 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
 import { AppSettingsService } from '../appSettings/appSettings.service';
-import {
-  DataSourceRequest,
-  DataResults,
-  AppSettings,
-  ApplicationLog,
-} from '@ngscaffolding/models';
+
 import { LoggingService } from '../logging/logging.service';
 import { DataSourceStore } from './dataSource.store';
 import { DataSourceQuery } from './dataSource.query';
 import { AppAuditService } from '../appAudit/appAudit.service';
+import { ApplicationLog } from '../../models/coreModels/applicationLog.model';
+import { AppSettings } from '../../models/coreModels/appSettings.model';
+import { DataSourceRequest } from '../../models/coreModels/dataSource.request.model';
+import { DataResults } from '../../models/dataSourceModels/dataResults.model';
 
 @Injectable({
   providedIn: 'root',

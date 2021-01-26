@@ -1,9 +1,10 @@
 import { ErrorHandler, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { ErrorModel, AppSettings } from '@ngscaffolding/models';
 import { AppSettingsService } from '../appSettings/appSettings.service';
 import { NotificationService } from '../notification/notification.service';
+import { AppSettings } from '../../models/coreModels/appSettings.model';
+import { ErrorModel } from '../../models/coreModels/error.model';
 
 @Injectable({
   providedIn: 'root'

@@ -11,15 +11,14 @@
     "importHelpers": true,
     "target": "es2015",
     "module": "es2020",
-    "lib": [
-      "es2018",
-      "dom"
-    ],
+    "lib": ["es2018", "dom"],
     "paths": {
       "@ngscaffolding/core": [
         "dist/ngscaffolding/core/ngscaffolding-core",
         "dist/ngscaffolding/core"
-      ]
+      ],
+      "@ngscaffolding/*": ["./node_modules/@ngscaffolding/*"],
+      "@angular/*": ["./node_modules/@angular/*"]
     }
   }
 }

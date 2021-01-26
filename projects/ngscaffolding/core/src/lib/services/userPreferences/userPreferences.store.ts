@@ -1,6 +1,6 @@
 import { Injectable, Type } from '@angular/core';
 import { EntityState, EntityStore, StoreConfig } from '@datorama/akita';
-import { UserPreferenceValue, UserPreferenceDefinition } from '@ngscaffolding/models';
+import { UserPreferenceValue, UserPreferenceDefinition } from '../../models/coreModels/userPreference.model';
 
 
 export interface UserPreferencesState extends EntityState<UserPreferenceValue> {

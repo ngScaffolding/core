@@ -63,4 +63,17 @@ export { TruncateTextPipe } from './lib/pipes/truncateText.pipe';
 export { AuthoriseRoleGuard } from './lib/routeGuards/authoriseRoleGuard';
 
 export { DialogWindowComponent } from './lib/components/dialogWindow/dialogWindow.component';
+
+// Models
+export * from './lib/models/inputBuilderModels/inputDetail.model';
+export * from './lib/models/inputBuilderModels/customValidator.model';
+
+export * from './lib/models/notificationModels/notificationDetails.model';
+export * from './lib/models/notificationModels/notificationSent.model';
+export * from './lib/models/notificationModels/notificationSubscriber.model';
+
+export * from './lib/models/deepClone.helper';
+export * from './lib/models/objectPath.helper';
+export * from './lib/models/zuluDate.helper';
+
 export { CoreModule } from './lib/core.module';

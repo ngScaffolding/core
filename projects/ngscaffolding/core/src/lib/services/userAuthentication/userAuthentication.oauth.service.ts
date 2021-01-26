@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import { UserManager, UserManagerSettings, User } from 'oidc-client';
 import { UserAuthenticationBase } from './UserAuthenticationBase';
-import { AppSettings, BaseEntity, BasicUser } from '@ngscaffolding/models';
 import { AuthenticationStore } from './userAuthentication.store';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { UserAuthenticationQuery } from './userAuthentication.query';
 import { AppSettingsQuery } from '../appSettings/appSettings.query';
+import { BasicUser } from '../../models/authModels/authUser.model';
+import { AppSettings } from '../../models/coreModels/appSettings.model';
+import { BaseEntity } from '../../models/coreModels/baseEntity.model';
 
 @Injectable({
   providedIn: 'root',

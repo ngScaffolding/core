@@ -4,10 +4,11 @@ import { RolesQuery } from './roles.query';
 import { RolesStore } from './roles.store';
 import { AppSettingsQuery } from '../appSettings/appSettings.query';
 import { combineLatest } from 'rxjs';
-import { AppSettings, SystemDataSourceNames } from '@ngscaffolding/models';
 import { take, finalize } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { DataSourceService } from '../dataSource/dataSource.service';
+import { AppSettings } from '../../models/coreModels/appSettings.model';
+import { SystemDataSourceNames } from '../../models/dataSourceModels/base.dataSource.model';
 
 @Injectable({
   providedIn: 'root'

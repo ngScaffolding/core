@@ -5,11 +5,12 @@ import { finalize, take } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 
 import { LoggingService } from '../logging/logging.service';
-import { WidgetModelBase, AppSettings } from '@ngscaffolding/models';
 import { AppSettingsQuery } from '../appSettings/appSettings.query';
 import { UserAuthenticationQuery } from '../userAuthentication/userAuthentication.query';
 import { WidgetStore } from './widget.store';
 import { WidgetQuery } from './widget.query';
+import { AppSettings } from '../../models/coreModels/appSettings.model';
+import { WidgetModelBase } from '../../models/dashboardModels/widget.model';
 
 
 @Injectable({

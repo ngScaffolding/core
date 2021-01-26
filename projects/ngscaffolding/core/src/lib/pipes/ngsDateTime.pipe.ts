@@ -3,7 +3,7 @@ const dateFormat = dateFormatimp;
 
 import { Pipe, PipeTransform } from '@angular/core';
 import { AppSettingsQuery } from '../services/appSettings/appSettings.query';
-import { AppSettings } from '@ngscaffolding/models';
+import { AppSettings } from '../models/coreModels/appSettings.model';
 
 @Pipe({ name: 'ngsDateTime' })
 export class NgsDateTimePipe implements PipeTransform {

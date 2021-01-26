@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BaseEntity } from '@ngscaffolding/models';
+import { BaseEntity } from '../../models/coreModels/baseEntity.model';
 
 @Injectable()
 export abstract class UserAuthenticationBase {

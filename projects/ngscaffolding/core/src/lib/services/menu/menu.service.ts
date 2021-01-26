@@ -6,11 +6,12 @@ import { timeout, finalize } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 
 import { LoggingService } from '../logging/logging.service';
-import { CoreMenuItem, AppSettings, MenuTypes } from '@ngscaffolding/models';
 import { AppSettingsQuery } from '../appSettings/appSettings.query';
 import { UserAuthenticationQuery } from '../userAuthentication/userAuthentication.query';
 import { MenuStore } from './menu.store';
 import { MenuQuery } from './menu.query';
+import { AppSettings } from '../../models/coreModels/appSettings.model';
+import { CoreMenuItem, MenuTypes } from '../../models/coreModels/coreMenuItem.model';
 
 @Injectable({
     providedIn: 'root'
