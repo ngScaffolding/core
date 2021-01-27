@@ -26,13 +26,15 @@ export class OAuthService implements UserAuthenticationBase {
     appSettingsQuery
       .selectEntity(AppSettings.authOAuthSettings)
       .subscribe((settings) => {
-        this.manager = new UserManager(settings.value);
-        this.manager.getUser().then((user) => {
-          if (user) {
-            this.user = user;
-            this.setToken(this.user.access_token);
-          }
-        });
+        if (settings) {
+          this.manager = new UserManager(settings.value);
+          this.manager.getUser().then((user) => {
+            if (user) {
+              this.user = user;
+              this.setToken(this.user.access_token);
+            }
+          });
+        }
       });
   }
   filterItemsByRole(authItems: BaseEntity[]): Array<BaseEntity> {

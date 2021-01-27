@@ -19,33 +19,43 @@ import { VersionsService } from './services/versions/versions.service';
 import { DialogWindowComponent } from './components/dialogWindow/dialogWindow.component';
 
 import { VERSION } from './version';
+import { Optional } from '@angular/core';
+import { SkipSelf } from '@angular/core';
 
 @NgModule({
-    imports: [CommonModule, FormsModule, HttpClientModule],
-    declarations: [
-        FillHeightDirective,
-        ButtonColourPipe,
-        NgsDatePipe,
-        NgsDateTimePipe,
-        TruncateTextPipe,
-        DialogWindowComponent
-    ],
-    exports: [
-        ButtonColourPipe,
-        NgsDatePipe,
-        NgsDateTimePipe,
-        TruncateTextPipe,
-        FillHeightDirective,
-        DialogWindowComponent
-    ]
+  imports: [CommonModule, FormsModule, HttpClientModule],
+  declarations: [
+    FillHeightDirective,
+    ButtonColourPipe,
+    NgsDatePipe,
+    NgsDateTimePipe,
+    TruncateTextPipe,
+    DialogWindowComponent,
+  ],
+  exports: [
+    ButtonColourPipe,
+    NgsDatePipe,
+    NgsDateTimePipe,
+    TruncateTextPipe,
+    FillHeightDirective,
+    DialogWindowComponent,
+  ],
 })
 export class CoreModule {
-    static forRoot(): ModuleWithProviders<CoreModule> {
-        return {
-            ngModule: CoreModule
-        };
+  static forRoot(): ModuleWithProviders<CoreModule> {
+    return {
+      ngModule: CoreModule,
+    };
+  }
+  constructor(
+    versions: VersionsService,
+    @Optional() @SkipSelf() parentModule?: CoreModule
+  ) {
+    if (parentModule) {
+      throw new Error(
+        'CoreModule is already loaded. Import it in the AppModule only'
+      );
     }
-    constructor(versions: VersionsService) {
-        versions.addVersion('@ngscaffolding/core', VERSION.version);
-    }
+    versions.addVersion('@ngscaffolding/core', VERSION.version);
+  }
 }
