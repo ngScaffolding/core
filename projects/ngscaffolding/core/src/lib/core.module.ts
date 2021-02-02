@@ -21,11 +21,13 @@ import { DialogWindowComponent } from './components/dialogWindow/dialogWindow.co
 import { VERSION } from './version';
 import { Optional } from '@angular/core';
 import { SkipSelf } from '@angular/core';
+import { ShowAuthDirective } from './directives/show-auth.directive';
 
 @NgModule({
   imports: [CommonModule, FormsModule, HttpClientModule],
   declarations: [
     FillHeightDirective,
+    ShowAuthDirective,
     ButtonColourPipe,
     NgsDatePipe,
     NgsDateTimePipe,
@@ -38,6 +40,7 @@ import { SkipSelf } from '@angular/core';
     NgsDateTimePipe,
     TruncateTextPipe,
     FillHeightDirective,
+    ShowAuthDirective,
     DialogWindowComponent,
   ],
 })

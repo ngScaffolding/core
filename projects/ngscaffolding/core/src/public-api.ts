@@ -52,6 +52,7 @@ export { UserServiceBase } from './lib/services/userService/user.service.base';
 export { SoftwareVersion, VersionsService } from './lib/services/versions/versions.service';
 
 export { FillHeightDirective } from './lib/directives/fill-height.directive';
+export { ShowAuthDirective } from './lib/directives/show-auth.directive';
 
 // Pipes
 export { ButtonColourPipe } from './lib/pipes/buttonColour.pipe';
