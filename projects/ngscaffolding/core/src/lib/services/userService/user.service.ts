@@ -7,9 +7,9 @@ import { Observable } from 'rxjs';
 import { timeout } from 'rxjs/operators';
 import { UserServiceBase } from './user.service.base';
 import { AppSettingsService } from '../appSettings/appSettings.service';
-import { ChangePasswordModel } from '../../models/authModels/changePassword.model';
-import { IUserModel } from '../../models/authModels/IUser.model';
-import { AppSettings } from '../../models/coreModels/appSettings.model';
+import { ChangePasswordModel } from '@ngscaffolding/models';
+import { IUserModel } from '@ngscaffolding/models';
+import { AppSettings } from '@ngscaffolding/models';
 
 
 @Injectable({

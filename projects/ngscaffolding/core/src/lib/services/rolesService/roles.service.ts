@@ -7,8 +7,8 @@ import { combineLatest } from 'rxjs';
 import { take, finalize } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { DataSourceService } from '../dataSource/dataSource.service';
-import { AppSettings } from '../../models/coreModels/appSettings.model';
-import { SystemDataSourceNames } from '../../models/dataSourceModels/base.dataSource.model';
+import { AppSettings } from '@ngscaffolding/models';
+import { SystemDataSourceNames } from '@ngscaffolding/models';
 
 @Injectable({
   providedIn: 'root'

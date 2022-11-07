@@ -7,9 +7,9 @@ import { UserAuthenticationQuery } from '../userAuthentication/userAuthenticatio
 import { AuditLogStore } from './auditLog.store';
 import { AuditLogQuery } from './auditLog.query';
 import { v4 as uuid } from 'uuid';
-import { ZuluDateHelper } from '../../models/zuluDate.helper';
-import { AppSettings } from '../../models/coreModels/appSettings.model';
-import { AuditLog } from '../../models/coreModels/auditLog.model';
+import { ZuluDateHelper } from '@ngscaffolding/models';
+import { AppSettings } from '@ngscaffolding/models';
+import { AuditLog } from '@ngscaffolding/models';
 
 @Injectable({
     providedIn: 'root'

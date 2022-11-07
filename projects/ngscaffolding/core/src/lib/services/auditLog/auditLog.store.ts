@@ -1,6 +1,6 @@
 import { Injectable, Type } from '@angular/core';
 import { EntityState, EntityStore, StoreConfig } from '@datorama/akita';
-import { AuditLog } from '../../models/coreModels/auditLog.model';
+import { AuditLog } from '@ngscaffolding/models';
 
 
 export interface AuditLogState extends EntityState<AuditLog> {}

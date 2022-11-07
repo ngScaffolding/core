@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { EntityState, EntityStore, StoreConfig } from '@datorama/akita';
-import { WidgetModelBase } from '../../models/dashboardModels/widget.model';
+import { WidgetModelBase } from '@ngscaffolding/models';
 
 export interface WidgetState extends EntityState<WidgetModelBase> {}
 

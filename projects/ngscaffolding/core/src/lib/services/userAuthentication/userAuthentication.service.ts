@@ -15,9 +15,7 @@ import { UserAuthenticationBase } from './UserAuthenticationBase';
 import { resetStores } from '@datorama/akita';
 import { UserAuthenticationQuery } from './userAuthentication.query';
 import { Router } from '@angular/router';
-import { BasicUser } from '../../models/authModels/authUser.model';
-import { AppSettings } from '../../models/coreModels/appSettings.model';
-import { BaseEntity } from '../../models/coreModels/baseEntity.model';
+import { AppSettings, BaseEntity, BasicUser } from '@ngscaffolding/models';
 
 @Injectable({ providedIn: 'root' })
 export class UserAuthenticationService implements UserAuthenticationBase {

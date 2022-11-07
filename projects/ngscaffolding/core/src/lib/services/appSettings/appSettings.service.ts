@@ -9,7 +9,7 @@ import { timeout, retry } from 'rxjs/operators';
 import {
   AppSettings,
   AppSettingsValue,
-} from '../../models/coreModels/appSettings.model';
+} from '@ngscaffolding/models';
 
 @Injectable({
   providedIn: 'root',

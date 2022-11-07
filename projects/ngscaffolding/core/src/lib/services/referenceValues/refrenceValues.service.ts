@@ -6,10 +6,9 @@ import { AppSettingsService } from '../appSettings/appSettings.service';
 import { LoggingService } from '../logging/logging.service';
 import { ReferenceValuesQuery } from './referenceValues.query';
 import { ReferenceValuesStore } from './referenceValues.store';
-import { isArray } from 'util';
 import { timeout, retry } from 'rxjs/operators';
-import { AppSettings } from '../../models/coreModels/appSettings.model';
-import { ReferenceValue } from '../../models/coreModels/referenceValue.model';
+import { AppSettings } from '@ngscaffolding/models';
+import { ReferenceValue } from '@ngscaffolding/models';
 
 @Injectable({
     providedIn: 'root'

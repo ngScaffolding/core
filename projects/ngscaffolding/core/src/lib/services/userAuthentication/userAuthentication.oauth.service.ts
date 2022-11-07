@@ -5,9 +5,8 @@ import { AuthenticationStore } from './userAuthentication.store';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { UserAuthenticationQuery } from './userAuthentication.query';
 import { AppSettingsQuery } from '../appSettings/appSettings.query';
-import { BasicUser } from '../../models/authModels/authUser.model';
-import { AppSettings } from '../../models/coreModels/appSettings.model';
-import { BaseEntity } from '../../models/coreModels/baseEntity.model';
+import { AppSettings, BaseEntity, BasicUser } from '@ngscaffolding/models';
+
 
 @Injectable({
   providedIn: 'root',

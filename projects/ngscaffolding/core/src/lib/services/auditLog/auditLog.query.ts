@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { QueryEntity } from '@datorama/akita';
-import { AuditLog } from '../../models/coreModels/auditLog.model';
+import { AuditLog } from '@ngscaffolding/models';
 import { AuditLogState, AuditLogStore } from './auditLog.store';
 
 

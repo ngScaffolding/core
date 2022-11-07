@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store, StoreConfig } from '@datorama/akita';
-import { BasicUser, createBasicUser } from '../../models/authModels/authUser.model';
+import { BasicUser, createBasicUser } from '@ngscaffolding/models';
 
 export interface AuthenticationState {
   authenticated: boolean;

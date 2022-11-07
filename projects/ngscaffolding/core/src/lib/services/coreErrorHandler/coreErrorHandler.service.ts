@@ -3,8 +3,8 @@ import { HttpClient } from '@angular/common/http';
 
 import { AppSettingsService } from '../appSettings/appSettings.service';
 import { NotificationService } from '../notification/notification.service';
-import { AppSettings } from '../../models/coreModels/appSettings.model';
-import { ErrorModel } from '../../models/coreModels/error.model';
+import { AppSettings } from '@ngscaffolding/models';
+import { ErrorModel } from '@ngscaffolding/models';
 
 @Injectable({
   providedIn: 'root'

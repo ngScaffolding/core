@@ -1,6 +1,6 @@
 import { Injectable, Type } from '@angular/core';
 import { EntityState, EntityStore, StoreConfig } from '@datorama/akita';
-import { DataResults } from '../../models/dataSourceModels/dataResults.model';
+import { DataResults } from '@ngscaffolding/models';
 
 
 export interface DataSourceState extends EntityState<DataResults> {

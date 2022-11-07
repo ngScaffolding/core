@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { QueryEntity, QueryConfig, Order } from '@datorama/akita';
 import { MenuStore, MenuState } from './menu.store';
 import { Observable } from 'rxjs';
-import { CoreMenuItem, MenuTypes } from '../../models/coreModels/coreMenuItem.model';
+import { CoreMenuItem, MenuTypes } from '@ngscaffolding/models';
 
 @Injectable({
     providedIn: 'root'

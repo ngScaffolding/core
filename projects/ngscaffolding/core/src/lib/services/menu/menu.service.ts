@@ -10,11 +10,11 @@ import { AppSettingsQuery } from '../appSettings/appSettings.query';
 import { UserAuthenticationQuery } from '../userAuthentication/userAuthentication.query';
 import { MenuStore } from './menu.store';
 import { MenuQuery } from './menu.query';
-import { AppSettings } from '../../models/coreModels/appSettings.model';
+import { AppSettings } from '@ngscaffolding/models';
 import {
   CoreMenuItem,
   MenuTypes,
-} from '../../models/coreModels/coreMenuItem.model';
+} from '@ngscaffolding/models';
 
 @Injectable({
   providedIn: 'root',

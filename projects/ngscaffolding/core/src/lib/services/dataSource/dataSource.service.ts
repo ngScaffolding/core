@@ -9,10 +9,8 @@ import { LoggingService } from '../logging/logging.service';
 import { DataSourceStore } from './dataSource.store';
 import { DataSourceQuery } from './dataSource.query';
 import { AppAuditService } from '../appAudit/appAudit.service';
-import { ApplicationLog } from '../../models/coreModels/applicationLog.model';
-import { AppSettings } from '../../models/coreModels/appSettings.model';
-import { DataSourceRequest } from '../../models/coreModels/dataSource.request.model';
-import { DataResults } from '../../models/dataSourceModels/dataResults.model';
+import { DataResults, DataSourceRequest, ApplicationLog, AppSettings } from '@ngscaffolding/models';
+
 
 @Injectable({
   providedIn: 'root',

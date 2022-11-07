@@ -10,8 +10,8 @@ import { UserPreferencesStore } from './userPreferences.store';
 import { UserPreferencesQuery } from './userPreferences.query';
 import { LoggingService } from '../logging/logging.service';
 import { AppSettingsQuery } from '../appSettings/appSettings.query';
-import { AppSettings } from '../../models/coreModels/appSettings.model';
-import { UserPreferenceValue, UserPreferenceDefinition } from '../../models/coreModels/userPreference.model';
+import { AppSettings } from '@ngscaffolding/models';
+import { UserPreferenceValue, UserPreferenceDefinition } from '@ngscaffolding/models';
 
 @Injectable({
   providedIn: 'root'

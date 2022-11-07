@@ -3,9 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { AppSettingsQuery } from '../appSettings/appSettings.query';
 import { timeout, retry } from 'rxjs/operators';
 import { UserAuthenticationQuery } from '../userAuthentication/userAuthentication.query';
-import { ZuluDateHelper } from '../../models/zuluDate.helper';
-import { ApplicationLog } from '../../models/coreModels/applicationLog.model';
-import { AppSettings } from '../../models/coreModels/appSettings.model';
+import { ApplicationLog, AppSettings, ZuluDateHelper } from '@ngscaffolding/models';
+
 
 
 @Injectable({
