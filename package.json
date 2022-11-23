@@ -21,7 +21,7 @@
     "@angular/router": "^14.1.1",
     "@auth0/angular-jwt": "^5.0.1",
     "@datorama/akita": "^7.1.1",
-    "@ngscaffolding/models": "latest",
+    "@ngscaffolding/models": "2.0.302",
     "dateformat": "^3.0.3",
     "oidc-client": "^1.10.1",
     "rxjs": "7.5.6",

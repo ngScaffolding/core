@@ -1,4 +1,4 @@
-import { Injectable, NgModuleFactoryLoader, Injector } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +13,6 @@ export class ComponentLoaderService {
   };
 
   constructor(
-    private loader: NgModuleFactoryLoader,
     private injector: Injector
   ) {}
 
