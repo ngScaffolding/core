@@ -8,6 +8,7 @@ import { ButtonColourPipe } from './pipes/buttonColour.pipe';
 import { NgsDateTimePipe } from './pipes/ngsDateTime.pipe';
 import { NgsDatePipe } from './pipes/ngsDate.pipe';
 import { TruncateTextPipe } from './pipes/truncateText.pipe';
+import { DateAgoPipe } from './pipes/date-ago.pipe';
 
 // Directives
 import { FillHeightDirective } from './directives/fill-height.directive';
@@ -32,6 +33,7 @@ import { ShowAuthDirective } from './directives/show-auth.directive';
     NgsDatePipe,
     NgsDateTimePipe,
     TruncateTextPipe,
+    DateAgoPipe,
     DialogWindowComponent,
   ],
   exports: [
@@ -39,26 +41,25 @@ import { ShowAuthDirective } from './directives/show-auth.directive';
     NgsDatePipe,
     NgsDateTimePipe,
     TruncateTextPipe,
+    DateAgoPipe,
     FillHeightDirective,
     ShowAuthDirective,
     DialogWindowComponent,
   ],
 })
 export class CoreModule {
-  static forRoot(): ModuleWithProviders<CoreModule> {
-    return {
-      ngModule: CoreModule,
-    };
-  }
   constructor(
     versions: VersionsService,
     @Optional() @SkipSelf() parentModule?: CoreModule
   ) {
-    if (parentModule) {
-      throw new Error(
-        'CoreModule is already loaded. Import it in the AppModule only'
-      );
+    if (versions) {
+      versions.addVersion('@ngscaffolding/core', VERSION.version);
     }
-    versions.addVersion('@ngscaffolding/core', VERSION.version);
+  }
+
+  static forRoot(): ModuleWithProviders<CoreModule> {
+    return {
+      ngModule: CoreModule,
+    };
   }
 }

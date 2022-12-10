@@ -4,6 +4,8 @@ import { CoreMenuItem } from '@ngscaffolding/models';
 
 export interface MenuState extends EntityState<CoreMenuItem> {
   menuItems: CoreMenuItem[];
+  addItems: CoreMenuItem[];
+  quickItems: CoreMenuItem[];
 }
 
 @Injectable({ providedIn: 'root' })

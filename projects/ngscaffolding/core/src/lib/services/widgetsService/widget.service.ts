@@ -34,21 +34,22 @@ export class WidgetService {
     this.widgetStore.setLoading(false);
 
     // Wait for settings, then load from server
-    combineLatest(this.authQuery.authenticated$, this.appSettingsQuery.selectEntity(AppSettings.apiHome)).subscribe(([authenticated, apiHome]) => {
-      if (authenticated && apiHome) {
-        this.apiHome = apiHome.value;
-        this.widgetQuery
-          .selectLoading()
-          .pipe(take(1))
-          .subscribe(loading => {
-            if (!loading) {
-              this.downloadWidgetItems();
-            }
-          });
-      } else if (!authenticated) {
-        this.widgetStore.remove();
-      }
-    });
+    combineLatest(this.authQuery.authenticated$, this.appSettingsQuery.selectEntity(AppSettings.apiHome))
+      .subscribe(([authenticated, apiHome]) => {
+        if (authenticated && apiHome) {
+          this.apiHome = apiHome.value;
+          this.widgetQuery
+            .selectLoading()
+            .pipe(take(1))
+            .subscribe(loading => {
+              if (!loading) {
+                this.downloadWidgetItems();
+              }
+            });
+        } else if (!authenticated) {
+          this.widgetStore.remove();
+        }
+      });
   }
   public downloadWidgetItems() {
     // Mark loading status

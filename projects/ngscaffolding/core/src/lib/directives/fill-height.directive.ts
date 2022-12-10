@@ -7,31 +7,30 @@ import {
 } from '@angular/core';
 import { LoggingService } from '../services/logging/logging.service';
 
+// eslint-disable-next-line @angular-eslint/directive-selector
 @Directive({ selector: '[ngsFillHeight]' })
 export class FillHeightDirective implements AfterViewInit {
   @Input() footerElement = null;
   @Input() fixedHeight = 0;
   @Input() relativeToParentPercent = 0;
+  @Input() deductValue = 0;
 
-  constructor(private el: ElementRef, private logger: LoggingService) {}
-
-  ngAfterViewInit(): void {
-    this.calculateAndSetElementHeight();
-  }
+  constructor(private el: ElementRef, private logger: LoggingService) { }
 
   @HostListener('window:resize', ['$event'])
   onResize(event) {
     this.calculateAndSetElementHeight();
   }
 
+  ngAfterViewInit(): void {
+    this.calculateAndSetElementHeight();
+  }
+
   private calculateAndSetElementHeight() {
     if (this.relativeToParentPercent > 0) {
-      const parentHeight = this.el.nativeElement.parentNode.parentNode
-        .parentNode.parentNode.parentNode.parentNode.offsetHeight;
+      const parentHeight = this.el.nativeElement.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.offsetHeight;
       if (parentHeight > 0) {
-        this.el.nativeElement.style.height = `${
-          parentHeight * (this.relativeToParentPercent / 100)
-        }px`;
+        this.el.nativeElement.style.height = `${parentHeight * (this.relativeToParentPercent / 100)}px`;
       }
     } else if (this.fixedHeight > 0) {
       this.el.nativeElement.style.height = `${this.fixedHeight}px`;
@@ -46,9 +45,7 @@ export class FillHeightDirective implements AfterViewInit {
       const elementMarginBottom = this.el.nativeElement.style.marginBottom;
       const footerElementMargin = this.getfooterElementMargin();
 
-      this.el.nativeElement.style.height = `${
-        windowHeight - footerElementMargin - elementOffsetTop - 16
-      }px`;
+      this.el.nativeElement.style.height = `${windowHeight - footerElementMargin - elementOffsetTop - 16 - Number(this.deductValue)}px`;
     }
   }
 

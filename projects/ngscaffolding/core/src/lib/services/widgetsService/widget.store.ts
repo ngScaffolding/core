@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { EntityState, EntityStore, StoreConfig } from '@datorama/akita';
 import { WidgetModelBase } from '@ngscaffolding/models';
 
-export interface WidgetState extends EntityState<WidgetModelBase> {}
+export type WidgetState = EntityState<WidgetModelBase>;
 
 @Injectable({ providedIn: 'root' })
 @StoreConfig({ name: 'widget', idKey: 'name' })

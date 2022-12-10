@@ -17,9 +17,7 @@ export class CoreErrorHandlerService extends ErrorHandler {
     super();
   }
 
-  public logError(error, source: string = null) {}
-
-  private processError(error, source: string = null) {}
+  public logError(error, source: string = null) { }
 
   handleError(error, source: string = null) {
     super.handleError(error);
@@ -57,4 +55,6 @@ export class CoreErrorHandlerService extends ErrorHandler {
       // TODO: Show User Error
     }
   }
+
+  private processError(error, source: string = null) { }
 }

@@ -1,5 +1,4 @@
-import * as dateFormatimp from 'dateformat';
-const dateFormat = dateFormatimp;
+import dateFormat, { masks } from 'dateformat';
 
 import { Pipe, PipeTransform } from '@angular/core';
 import { AppSettingsQuery } from '../services/appSettings/appSettings.query';

@@ -1,6 +1,7 @@
 import { Component, OnInit, OnChanges, OnDestroy, SimpleChanges, EventEmitter, Output } from '@angular/core';
 
 @Component({
+    // eslint-disable-next-line @angular-eslint/component-selector
     selector: 'ngs-dialog-window',
     templateUrl: 'dialogWindow.component.html',
     styleUrls: ['dialogWindow.component.scss']
@@ -17,6 +18,5 @@ export class DialogWindowComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     save(event: any) {
-
     }
 }

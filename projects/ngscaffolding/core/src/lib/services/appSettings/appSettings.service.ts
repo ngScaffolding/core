@@ -15,9 +15,10 @@ import {
   providedIn: 'root',
 })
 export class AppSettingsService {
-  private className = 'AppSettingsService';
 
   public loading$: Observable<boolean>;
+
+  private className = 'AppSettingsService';
 
   constructor(
     private appSettingsStore: AppSettingsStore,
@@ -30,9 +31,9 @@ export class AppSettingsService {
 
   public setValue(name: string, value: any): void {
     if (this.appSettingsQuery.hasEntity(name)) {
-      this.appSettingsStore.update(name, { name: name, value: value });
+      this.appSettingsStore.update(name, { name, value });
     } else {
-      this.appSettingsStore.add({ name: name, value: value });
+      this.appSettingsStore.add({ name, value });
     }
 
     if (name === AppSettings.apiHome) {
@@ -48,31 +49,7 @@ export class AppSettingsService {
     }
   }
 
-  private loadFromServer(apiHome: string) {
-    // Mark store as loading
-    this.appSettingsStore.setLoading(true);
-
-    // Load values from Server
-    this.http
-      .get<Array<AppSettingsValue>>(`${apiHome}/api/v1/appSettings`)
-      .pipe(timeout(20000), retry(3))
-      .subscribe(
-        (appValues) => {
-          if (appValues) {
-            appValues.forEach((appValue) => {
-              this.setValue(appValue.name, appValue.value);
-            });
-          }
-          this.appSettingsStore.setLoading(false);
-          this.appSettingsStore.update({ isInitialised: true });
-        },
-        (err) => {
-          this.appSettingsStore.setLoading(false);
-        }
-      );
-  }
-
-  public setValues(settings: object): void {
+  public setValues(settings: any): void {
     // Mark store as loading
     this.appSettingsStore.setLoading(true);
     this.appSettingsStore.update({ isInitialised: false });
@@ -98,5 +75,29 @@ export class AppSettingsService {
 
   public getString(name: string): Observable<string> {
     return this.appSettingsQuery.selectEntity(name, (entity) => entity.value);
+  }
+
+  private loadFromServer(apiHome: string) {
+    // Mark store as loading
+    this.appSettingsStore.setLoading(true);
+
+    // Load values from Server
+    this.http
+      .get<Array<AppSettingsValue>>(`${apiHome}/api/v1/appSettings`)
+      .pipe(timeout(20000), retry(3))
+      .subscribe(
+        (appValues) => {
+          if (appValues) {
+            appValues.forEach((appValue) => {
+              this.setValue(appValue.name, appValue.value);
+            });
+          }
+          this.appSettingsStore.setLoading(false);
+          this.appSettingsStore.update({ isInitialised: true });
+        },
+        (err) => {
+          this.appSettingsStore.setLoading(false);
+        }
+      );
   }
 }

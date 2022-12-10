@@ -19,9 +19,9 @@ export class VersionsService {
     addVersion(module: string, version: string, isAppModule = false) {
         this.logging.info(`Loading Module ${module} Version ${version} IsAppModule ${isAppModule}`);
         this.versions.push({
-            module: module,
-            version: version,
-            isAppModule: isAppModule
+            module,
+            version,
+            isAppModule
         });
     }
     getVersions(): SoftwareVersion[] {

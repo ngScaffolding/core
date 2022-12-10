@@ -3,7 +3,7 @@ import { EntityState, EntityStore, StoreConfig } from '@datorama/akita';
 import { AuditLog } from '@ngscaffolding/models';
 
 
-export interface AuditLogState extends EntityState<AuditLog> {}
+export type AuditLogState = EntityState<AuditLog>;
 
 @Injectable({ providedIn: 'root' })
 @StoreConfig({ name: 'auditLog', idKey: 'id' })

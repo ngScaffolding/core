@@ -5,19 +5,24 @@ import { Observable } from 'rxjs';
 import { CoreMenuItem, MenuTypes } from '@ngscaffolding/models';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 @QueryConfig({
-    sortBy: 'order',
-    sortByOrder: Order.ASC // Order.DESC
+  sortBy: 'order',
+  sortByOrder: Order.ASC // Order.DESC
 })
 export class MenuQuery extends QueryEntity<MenuState, CoreMenuItem> {
-    public folders$: Observable<CoreMenuItem[]>;
+  public folders$: Observable<CoreMenuItem[]>;
+  public quickItems$: Observable<CoreMenuItem[]>;
+  public addItems$: Observable<CoreMenuItem[]>;
 
-    constructor(protected store: MenuStore) {
-        super(store);
-        this.folders$ = this.selectAll({
-            filterBy: [entity => entity.type === MenuTypes.Folder]
-        });
-    }
+  constructor(protected store: MenuStore) {
+    super(store);
+    this.folders$ = this.selectAll({
+      filterBy: [entity => entity.type === MenuTypes.Folder]
+    });
+
+    this.quickItems$ = this.select(state => state.quickItems);
+    this.addItems$ = this.select(state => state.addItems);
+  }
 }

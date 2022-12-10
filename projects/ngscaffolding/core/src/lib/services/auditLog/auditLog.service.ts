@@ -6,95 +6,95 @@ import { timeout, retry, finalize } from 'rxjs/operators';
 import { UserAuthenticationQuery } from '../userAuthentication/userAuthentication.query';
 import { AuditLogStore } from './auditLog.store';
 import { AuditLogQuery } from './auditLog.query';
-import { v4 as uuid } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { ZuluDateHelper } from '@ngscaffolding/models';
 import { AppSettings } from '@ngscaffolding/models';
 import { AuditLog } from '@ngscaffolding/models';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class AuditLogService {
-    private polling = 30000;
-    private retryVal = 3;
+  private polling = 30000;
+  private retryVal = 3;
 
-    private isSending = false;
-    private defaultLog: AuditLog = {};
+  private isSending = false;
+  private defaultLog: AuditLog = {};
 
-    constructor(
-        private auditLogStore: AuditLogStore,
-        private auditLogQuery: AuditLogQuery,
-        private appSettingsQuery: AppSettingsQuery,
-        private userQuery: UserAuthenticationQuery,
-        private http: HttpClient
-    ) {
-        appSettingsQuery
-            .selectEntity(AppSettings.mobileDefaultPolling)
-            .subscribe(val => (this.polling = val.value > 0 ? val.value : 30000));
-        appSettingsQuery
-            .selectEntity(AppSettings.mobileDefaultRetries)
-            .subscribe(val => (this.retryVal = val.value > 0 ? val.value : 3));
-        this.StartPolling();
+  constructor(
+    private auditLogStore: AuditLogStore,
+    private auditLogQuery: AuditLogQuery,
+    private appSettingsQuery: AppSettingsQuery,
+    private userQuery: UserAuthenticationQuery,
+    private http: HttpClient
+  ) {
+    appSettingsQuery
+      .selectEntity(AppSettings.mobileDefaultPolling)
+      .subscribe(val => (this.polling = val.value > 0 ? val.value : 30000));
+    appSettingsQuery
+      .selectEntity(AppSettings.mobileDefaultRetries)
+      .subscribe(val => (this.retryVal = val.value > 0 ? val.value : 3));
+    this.startPolling();
+  }
+
+  public setDefault(defaultLog: AuditLog) {
+    this.defaultLog = defaultLog;
+  }
+
+  public recordLog(auditLog: AuditLog): void {
+    const workingLog = { ...this.defaultLog, ...auditLog };
+    workingLog.id = uuidv4();
+    if (!workingLog.logDate) {
+      workingLog.logDate = ZuluDateHelper.setGMTDate(new Date());
     }
 
-    public SetDefault(defaultLog: AuditLog) {
-        this.defaultLog = defaultLog;
+    if (!workingLog.userID) {
+      workingLog.userID = this.userQuery.getUserId();
     }
 
-    public RecordLog(auditLog: AuditLog): void {
-        const workingLog = {...this.defaultLog, ...auditLog};
-        workingLog.id = uuid();
-        if (!workingLog.logDate) {
-            workingLog.logDate = ZuluDateHelper.setGMTDate(new Date());
-        }
-
-        if (!workingLog.userID) {
-            workingLog.userID = this.userQuery.getUserId();
-        }
-
-        this.auditLogStore.add(workingLog);
-        try {
-        } catch (err) {
-            console.log('Unable to send AppLog, offline?');
-        }
+    this.auditLogStore.add(workingLog);
+    try {
+    } catch (err) {
+      console.log('Unable to send AppLog, offline?');
     }
+  }
 
-    private StartPolling() {
-        setInterval(_ => {
-            if (!this.isSending) {
-                this.isSending = true;
-                this.SendLogEntries();
-            }
-        }, this.polling);
-    }
+  public sendLogEntries() {
+    const apiHome = this.appSettingsQuery.getEntity(AppSettings.apiHome).value;
+    const logEntries = this.auditLogQuery.getAll();
 
-    public SendLogEntries() {
-        const apiHome = this.appSettingsQuery.getEntity(AppSettings.apiHome).value;
-        const logEntries = this.auditLogQuery.getAll();
-
-        if (logEntries && logEntries.length > 0) {
-            const keys = logEntries.map(log => log.id);
-            // This post is a fire and forget. Don't have to authorise either
-            this.http
-                .post(`${apiHome}/api/v1/auditlog`, logEntries)
-                .pipe(
-                    timeout(30000),
-                    retry(3),
-                    finalize(() => {
-                        this.isSending = false;
-                    })
-                )
-                .subscribe(
-                    data => {
-                        this.auditLogStore.remove(keys);
-                        // keys.forEach(key => this.auditLogStore.remove(({ id }) => id === key));
-                    },
-                    err => {
-                        console.log('Unable to send AppLog, offline?');
-                    }
-                );
-        } else {
+    if (logEntries && logEntries.length > 0) {
+      const keys = logEntries.map(log => log.id);
+      // This post is a fire and forget. Don't have to authorise either
+      this.http
+        .post(`${apiHome}/api/v1/auditlog`, logEntries)
+        .pipe(
+          timeout(30000),
+          retry(3),
+          finalize(() => {
             this.isSending = false;
-        }
+          })
+        )
+        .subscribe(
+          data => {
+            this.auditLogStore.remove(keys);
+            // keys.forEach(key => this.auditLogStore.remove(({ id }) => id === key));
+          },
+          err => {
+            console.log('Unable to send AppLog, offline?');
+          }
+        );
+    } else {
+      this.isSending = false;
     }
+  }
+
+  private startPolling() {
+    setInterval(_ => {
+      if (!this.isSending) {
+        this.isSending = true;
+        this.sendLogEntries();
+      }
+    }, this.polling);
+  }
 }

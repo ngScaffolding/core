@@ -8,7 +8,7 @@ export abstract class UserAuthenticationBase {
     abstract logon(userName: string, password: string);
     abstract logoff();
 
-    abstract async completeAuthentication();
+    abstract completeAuthentication();
     abstract isAuthenticated(): boolean;
     abstract authorizationHeaderValue();
     abstract name(): string;

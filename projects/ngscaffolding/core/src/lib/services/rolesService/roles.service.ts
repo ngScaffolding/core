@@ -29,21 +29,22 @@ export class RolesService {
     this.rolesStore.setLoading(false);
 
     // Wait for settings, then load from server
-    combineLatest(this.authQuery.authenticated$, this.appSettingsQuery.selectEntity(AppSettings.apiHome)).subscribe(([authenticated, apiHome]) => {
-      if (authenticated && apiHome) {
-        this.apiHome = apiHome.value;
-        this.rolesQuery
-          .selectLoading()
-          .pipe(take(1))
-          .subscribe(loading => {
-            if (!loading) {
-              this.downloadRoles();
-            }
-          });
-      } else if (!authenticated) {
-        this.rolesStore.remove();
-      }
-    });
+    combineLatest(this.authQuery.authenticated$, this.appSettingsQuery.selectEntity(AppSettings.apiHome))
+      .subscribe(([authenticated, apiHome]) => {
+        if (authenticated && apiHome) {
+          this.apiHome = apiHome.value;
+          this.rolesQuery
+            .selectLoading()
+            .pipe(take(1))
+            .subscribe(loading => {
+              if (!loading) {
+                this.downloadRoles();
+              }
+            });
+        } else if (!authenticated) {
+          this.rolesStore.remove();
+        }
+      });
   }
 
   public downloadRoles() {

@@ -10,6 +10,7 @@ import { Subscription } from 'rxjs';
 import { LoggingService } from '../services/logging/logging.service';
 import { UserAuthenticationQuery } from '../services/userAuthentication/userAuthentication.query';
 
+// eslint-disable-next-line @angular-eslint/directive-selector
 @Directive({ selector: '[ngsShowAuth]' })
 export class ShowAuthDirective implements AfterViewInit, OnDestroy {
   private authSub: Subscription;

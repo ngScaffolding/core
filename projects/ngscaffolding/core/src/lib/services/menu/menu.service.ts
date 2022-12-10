@@ -20,6 +20,8 @@ import {
   providedIn: 'root',
 })
 export class MenuService {
+  routeSubject = new BehaviorSubject<Array<Route>>([]);
+
   private readonly methodName = 'MenuService';
   private masterListMenu: Array<CoreMenuItem> = [];
   private routes: Array<Route> = [];
@@ -28,7 +30,6 @@ export class MenuService {
 
   private apiHome: string;
 
-  public routeSubject = new BehaviorSubject<Array<Route>>(this.routes);
 
   private httpInFlight = false;
   private lockCount = 0;
@@ -61,35 +62,12 @@ export class MenuService {
     });
   }
 
-  private addLock(): void {
-    this.lockCount++;
-    this.log.info(
-      `MENU Service: Locks on Loading`,
-      this.methodName,
-      this.lockCount
-    );
-    this.menuStore.setLoading(true);
-  }
-
   public setCurrent(name: string): void {
     this.menuStore.setActive(name);
   }
 
   public reset(): void {
     this.menuStore.setActive(null);
-  }
-
-  private removeLock(): void {
-    this.lockCount--;
-    this.log.info(
-      `MENU Service: Locks on Loading`,
-      this.methodName,
-      this.lockCount
-    );
-
-    if (this.lockCount === 0) {
-      this.menuStore.setLoading(false);
-    }
   }
 
   public addMenuItemsFromCode(
@@ -196,74 +174,13 @@ export class MenuService {
     this.menuStore.update({ menuItems: existingMenus });
   }
 
-  // Iterative Call
-  private addMenuItemsToReferenceList(menuItems: CoreMenuItem[]): void {
-    menuItems.forEach((menuItem) => {
-      // Add to Entity Store
-      this.menuStore.upsert(menuItem.name, menuItem);
-      if (menuItem.items && Array.isArray(menuItem.items)) {
-        this.addMenuItemsToReferenceList(menuItem.items as Array<CoreMenuItem>);
-      }
-    });
-  }
+  public addRoute(route: Route, roles: string[] = null): void {
+    this.log.info(`Adding Route ${JSON.stringify(route)}`);
+    this.routes.push(route);
 
-  private removeUnauthorisedMenuItems(
-    menuItems: CoreMenuItem[]
-  ): CoreMenuItem[] {
-    const user = this.authQuery.getValue();
-    let userRoles: string[] = [];
-    if (user && user.userDetails) {
-      userRoles = user.userDetails.role;
+    if (roles !== null) {
+      this.rolesService.addRouteRoles(route.path, roles);
     }
-
-    const removingMenus: string[] = [];
-    let returnMenus: CoreMenuItem[] = JSON.parse(JSON.stringify(menuItems));
-
-    for (let menuIndex = 0; menuIndex < returnMenus.length; menuIndex++) {
-      const menuItem = returnMenus[menuIndex];
-
-      let removingThis = false;
-
-      // makes sure roles is array
-      let checkingRoles = [];
-
-      if (!menuItem.roles) {
-        checkingRoles = [];
-      } else if (Array.isArray(menuItem.roles)) {
-        checkingRoles = [...menuItem.roles];
-      } else {
-        checkingRoles = [menuItem.roles];
-      }
-
-      // Is this role protected
-      if (checkingRoles && checkingRoles.length > 0) {
-        if (
-          userRoles &&
-          checkingRoles.filter(
-            (allowedRole) => userRoles.indexOf(allowedRole) !== -1
-          ).length === 0
-        ) {
-          // No Authority. Remove
-          removingThis = true;
-          removingMenus.push(menuItem.name);
-        }
-      }
-
-      if (!removingThis && menuItem.items) {
-        menuItem.items = this.removeUnauthorisedMenuItems(
-          menuItem.items as CoreMenuItem[]
-        );
-      }
-    }
-
-    if (removingMenus.length > 0) {
-      returnMenus = menuItems.filter(
-        (menu) =>
-          removingMenus.findIndex((remove) => remove === menu.name) === -1
-      );
-    }
-
-    return returnMenus;
   }
 
   public downloadMenuItems(isMobile: boolean): void {
@@ -312,7 +229,11 @@ export class MenuService {
       });
     } else {
       newMenuItems.forEach((loopMenuItem) => {
-        this.addNewMenuItemToEntities(this.menuItems, loopMenuItem);
+        if (loopMenuItem.isQuickAdd || loopMenuItem.isQuickMenu) {
+          this.addNewQuickMenu(loopMenuItem);
+        } else {
+          this.addNewMenuItemToEntities(this.menuItems, loopMenuItem);
+        }
       });
     }
 
@@ -329,11 +250,11 @@ export class MenuService {
           // Need to create our routerLink
           switch (menuItem.type) {
             case MenuTypes.Dashboard: {
-              menuItem.routerLink = `dashboard/${menuItem.name}`;
+              menuItem.routerLink = `dashboard/dash/${menuItem.name}`;
               break;
             }
             case MenuTypes.Datagrid: {
-              menuItem.routerLink = `datagrid/${menuItem.name}`;
+              menuItem.routerLink = `datagrid/grid/${menuItem.name}`;
               break;
             }
             case MenuTypes.Folder: {
@@ -352,14 +273,97 @@ export class MenuService {
     }
   }
 
-  public addRoute(route: Route, roles: string[] = null): void {
-    this.log.info(`Adding Route ${JSON.stringify(route)}`);
-    this.routes.push(route);
+  private removeLock(): void {
+    this.lockCount--;
+    this.log.info(
+      `MENU Service: Locks on Loading`,
+      this.methodName,
+      this.lockCount
+    );
 
-    if (roles !== null) {
-      this.rolesService.addRouteRoles(route.path, roles);
+    if (this.lockCount === 0) {
+      this.menuStore.setLoading(false);
     }
   }
+  private addLock(): void {
+    this.lockCount++;
+    this.log.info(
+      `MENU Service: Locks on Loading`,
+      this.methodName,
+      this.lockCount
+    );
+    this.menuStore.setLoading(true);
+  }
+  // Iterative Call
+  private addMenuItemsToReferenceList(menuItems: CoreMenuItem[]): void {
+    menuItems.forEach((menuItem) => {
+      // Add to Entity Store
+      this.menuStore.upsert(menuItem.name, menuItem);
+      if (menuItem.items && Array.isArray(menuItem.items)) {
+        this.addMenuItemsToReferenceList(menuItem.items as Array<CoreMenuItem>);
+      }
+    });
+  }
+
+  private removeUnauthorisedMenuItems(
+    menuItems: CoreMenuItem[]
+  ): CoreMenuItem[] {
+    const user = this.authQuery.getValue();
+    let userRoles: string[] = [];
+    if (user && user.userDetails) {
+      userRoles = user.userDetails.role;
+    }
+
+    const removingMenus: string[] = [];
+    let returnMenus: CoreMenuItem[] = JSON.parse(JSON.stringify(menuItems));
+
+    returnMenus.forEach(menuItem => {
+
+      let removingThis = false;
+
+      // makes sure roles is array
+      let checkingRoles = [];
+
+      if (!menuItem.roles) {
+        checkingRoles = [];
+      } else if (Array.isArray(menuItem.roles)) {
+        checkingRoles = [...menuItem.roles];
+      } else {
+        checkingRoles = [menuItem.roles];
+      }
+
+      // Is this role protected
+      if (checkingRoles && checkingRoles.length > 0) {
+        if (
+          userRoles &&
+          checkingRoles.filter(
+            (allowedRole) => userRoles.indexOf(allowedRole) !== -1
+          ).length === 0
+        ) {
+          // No Authority. Remove
+          removingThis = true;
+          removingMenus.push(menuItem.name);
+        }
+      }
+
+      if (!removingThis && menuItem.items) {
+        menuItem.items = this.removeUnauthorisedMenuItems(
+          menuItem.items as CoreMenuItem[]
+        );
+      }
+
+    });
+
+    if (removingMenus.length > 0) {
+      returnMenus = menuItems.filter(
+        (menu) =>
+          removingMenus.findIndex((remove) => remove === menu.name) === -1
+      );
+    }
+
+    return returnMenus;
+  }
+
 
   private upsertMenuItemToExistingTree(newMenuItem: CoreMenuItem): void {
     const menuItems = [...this.menuItems];
@@ -388,6 +392,36 @@ export class MenuService {
     this.menuItems = menuItems;
   }
 
+  private addNewQuickMenu(newMenuItem: CoreMenuItem): void {
+    let calcRouterLink: string | string[];
+    // Router bits
+    if (
+      newMenuItem.routerLink &&
+      (newMenuItem.routerLink as string).indexOf(',') > -1
+    ) {
+      calcRouterLink = (newMenuItem.routerLink as string).split(',');
+    } else {
+      calcRouterLink = newMenuItem.routerLink;
+    }
+
+    const createdMenuItem: CoreMenuItem = {
+      ...newMenuItem,
+      routerLink: calcRouterLink,
+    };
+
+    if (newMenuItem.isQuickAdd) {
+      const quickAdds = this.menuQuery.getValue().addItems || [];
+      this.menuStore.update(state => ({
+        addItems: [...quickAdds, createdMenuItem]
+      }));
+    } else {
+      const quickItems = this.menuQuery.getValue().quickItems || [];
+      this.menuStore.update(state => ({
+        quickItems: [...quickItems, createdMenuItem]
+      }));
+    }
+  }
+
   private addNewMenuItemToEntities(
     targetMenu: CoreMenuItem[],
     newMenuItem: CoreMenuItem
@@ -402,9 +436,9 @@ export class MenuService {
       // Router bits
       if (
         newMenuItem.routerLink &&
-        (<string>newMenuItem.routerLink).indexOf(',') > -1
+        (newMenuItem.routerLink as string).indexOf(',') > -1
       ) {
-        calcRouterLink = (<string>newMenuItem.routerLink).split(',');
+        calcRouterLink = (newMenuItem.routerLink as string).split(',');
       } else {
         calcRouterLink = newMenuItem.routerLink;
       }

@@ -9,8 +9,10 @@ import { LoggingService } from '../logging/logging.service';
 import { DataSourceStore } from './dataSource.store';
 import { DataSourceQuery } from './dataSource.query';
 import { AppAuditService } from '../appAudit/appAudit.service';
-import { DataResults, DataSourceRequest, ApplicationLog, AppSettings } from '@ngscaffolding/models';
-
+import { ApplicationLog } from '@ngscaffolding/models';
+import { AppSettings } from '@ngscaffolding/models';
+import { DataSourceRequest } from '@ngscaffolding/models';
+import { DataResults } from '@ngscaffolding/models';
 
 @Injectable({
   providedIn: 'root',
@@ -28,7 +30,7 @@ export class DataSourceService {
     private logger: LoggingService
   ) {}
 
-  decorateInput(inputDetails: object): object {
+  decorateInput(inputDetails: any): any {
     return null;
   }
 
@@ -52,6 +54,10 @@ export class DataSourceService {
 
     if (this.inflightRequests.has(key)) {
       return this.inflightRequests.get(key);
+    }
+
+    if(!dataRequest.inputData){
+      dataRequest.inputData = {};
     }
 
     // Make HTTP Request
@@ -91,7 +97,7 @@ export class DataSourceService {
             )}/api/v1/datasource`,
             formData
           )
-          .pipe(timeout(20000), retry(3))
+          .pipe(timeout(240000))
           .subscribe(
             (values) => {
               const expiryNow = new Date();
@@ -103,17 +109,17 @@ export class DataSourceService {
                 expiryNow.getTime() + expiresSeconds * 10000
               );
               const newResults: DataResults = {
-                expiresWhen: expiresWhen,
+                expiresWhen,
                 rowCount: values.rowCount,
                 jsonData: values.jsonData,
                 results: values.results,
               };
 
               // Log Datasource Success
-              this.appAuditService.RecordLog({
-                ...logEntry,
-                result: 'Success',
-              });
+              // this.appAuditService.RecordLog({
+              //   ...logEntry,
+              //   result: 'Success',
+              // });
 
               // Update the Store to tell the world we have data
               this.dataSourceStore.update(key, newResults);
@@ -129,10 +135,10 @@ export class DataSourceService {
               };
 
               // Log Datasource Success
-              this.appAuditService.RecordLog({
-                ...logEntry,
-                result: err.message,
-              });
+              // this.appAuditService.RecordLog({
+              //   ...logEntry,
+              //   result: err.message,
+              // });
 
               this.dataSourceStore.update(key, errorResults);
               this.inflightRequests.delete(key);

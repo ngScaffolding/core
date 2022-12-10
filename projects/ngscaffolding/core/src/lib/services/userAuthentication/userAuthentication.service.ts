@@ -7,7 +7,6 @@ import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { AppSettingsService } from '../appSettings/appSettings.service';
 import { LoggingService } from '../logging/logging.service';
 
-
 import { AuthenticationStore } from './userAuthentication.store';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
@@ -15,7 +14,9 @@ import { UserAuthenticationBase } from './UserAuthenticationBase';
 import { resetStores } from '@datorama/akita';
 import { UserAuthenticationQuery } from './userAuthentication.query';
 import { Router } from '@angular/router';
-import { AppSettings, BaseEntity, BasicUser } from '@ngscaffolding/models';
+import { BasicUser } from '@ngscaffolding/models';
+import { AppSettings } from '@ngscaffolding/models';
+import { BaseEntity } from '@ngscaffolding/models';
 
 @Injectable({ providedIn: 'root' })
 export class UserAuthenticationService implements UserAuthenticationBase {
@@ -81,62 +82,19 @@ export class UserAuthenticationService implements UserAuthenticationBase {
     }
     authorizationHeaderValue() {}
     name(): string {
-        return 'Hello World';
+        return '';
     }
 
     forceLogon(returnUrl: string) {
         this.logoff();
-        this.router.navigate(['login'], { queryParams: { returnUrl: returnUrl } });
+        this.router.navigate(['login'], { queryParams: { returnUrl } });
     }
 
     getToken(): string {
         return this.authQuery.getValue().token;
     }
 
-    private loadUserTokenFromStorage() {
-        const savedToken = localStorage.getItem(this.tokenStorageKey); // Loaded from Saved Storage
-        if (savedToken !== null) {
-            // New AuthUser Based on Token
-            if (!this.jwtHelper.isTokenExpired(savedToken)) {
-                // If all Good
-                this.logger.info('Token from Storage - Token Loaded and not Expired');
-                this.setToken(savedToken);
-            } else {
-                // Expired Token
-                this.logger.info('Token from Storage - Token Expired - Not using');
-            }
-        } else {
-            // No token
-            this.logger.info('Token from Storage - No Token Available');
-        }
-    }
-
-    private setToken(token: any) {
-        // New AuthUser Based on Token
-        const tokenDetails = this.jwtHelper.decodeToken(token);
-
-        const newUser = new BasicUser();
-
-        if (tokenDetails['firstName'] && tokenDetails['lastName']) {
-            newUser.name = tokenDetails['firstName'] + ' ' + tokenDetails['lastName'];
-        }
-
-        if (tokenDetails['sub']) {
-            newUser.userId = tokenDetails['sub'];
-        }
-
-        if (tokenDetails['role']) {
-            newUser.role = tokenDetails['role'];
-        }
-
-        if (tokenDetails['email']) {
-            newUser.email = tokenDetails['email'];
-        }
-
-        this.authStore.update({ token: token, userDetails: newUser, authenticated: true });
-    }
-
-    public logon(userName: string, password: string): Observable<null> {
+    logon(userName: string, password: string): Observable<null> {
         return new Observable<null>(observer => {
             let body = new HttpParams();
             body = body
@@ -165,20 +123,20 @@ export class UserAuthenticationService implements UserAuthenticationBase {
                             if (requiredRole && !tokenDetails['role'].includes(requiredRole)) {
                                 observer.error('Unauthorised');
                             } else {
-                        // Save Token in Storage if needed
-                        if (this.appSettingsService.getValue(AppSettings.authSaveinLocalStorage)) {
-                            localStorage.setItem(this.tokenStorageKey, response['access_token']);
-                        }
+                                // Save Token in Storage if needed
+                                if (this.appSettingsService.getValue(AppSettings.authSaveinLocalStorage)) {
+                                    localStorage.setItem(this.tokenStorageKey, response['access_token']);
+                                }
 
-                        // Load our details from this token
-                        this.setToken(response['access_token']);
+                                // Load our details from this token
+                                this.setToken(response['access_token']);
 
-                        if (response['refresh_token']) {
-                            // this.refreshToken = response['refresh_token'];
-                        }
+                                if (response['refresh_token']) {
+                                    // this.refreshToken = response['refresh_token'];
+                                }
 
-                        observer.next(null);
-                        observer.complete();
+                                observer.next(null);
+                                observer.complete();
                             }
                         }
                     },
@@ -189,7 +147,7 @@ export class UserAuthenticationService implements UserAuthenticationBase {
         });
     }
 
-    public logoff(): void {
+    logoff(): void {
         if (this.appSettingsService.getValue(AppSettings.authSaveinLocalStorage)) {
             // Remove token from Local Storage
             localStorage.removeItem(this.tokenStorageKey);
@@ -199,5 +157,52 @@ export class UserAuthenticationService implements UserAuthenticationBase {
         resetStores({ exclude: ['appSettings'] });
 
         this.authStore.update({ token: null, userDetails: null, authenticated: false });
+    }
+
+    private loadUserTokenFromStorage() {
+        const savedToken = localStorage.getItem(this.tokenStorageKey); // Loaded from Saved Storage
+        if (savedToken !== null) {
+            // New AuthUser Based on Token
+            if (!this.jwtHelper.isTokenExpired(savedToken)) {
+                // If all Good
+                this.logger.info('Token from Storage - Token Loaded and not Expired');
+                this.setToken(savedToken);
+            } else {
+                // Expired Token
+                this.logger.info('Token from Storage - Token Expired - Not using');
+            }
+        } else {
+            // No token
+            this.logger.info('Token from Storage - No Token Available');
+        }
+    }
+
+    private setToken(token: any) {
+        // New AuthUser Based on Token
+        const tokenDetails = this.jwtHelper.decodeToken(token);
+
+        const newUser: BasicUser = { userId: '', email: '', firstName: '', lastName: '', language: '', name: '', role: [] };
+
+        if (tokenDetails['firstName'] && tokenDetails['lastName']) {
+            newUser.name = tokenDetails['firstName'] + ' ' + tokenDetails['lastName'];
+        }
+
+        if (tokenDetails['sub']) {
+            newUser.userId = tokenDetails['sub'];
+        }
+
+        if (tokenDetails['role']) {
+            newUser.role = tokenDetails['role'];
+        }
+
+        if (tokenDetails['email']) {
+            newUser.email = tokenDetails['email'];
+        }
+
+        if (tokenDetails['language']) {
+            newUser.language = tokenDetails['language'];
+        }
+
+        this.authStore.update({ token, userDetails: newUser, authenticated: true });
     }
 }

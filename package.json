@@ -1,6 +1,6 @@
 {
   "name": "@ngscaffolding/core",
-  "version": "3.0.01",
+  "version": "2.0.301",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -15,19 +15,17 @@
     "@angular/common": "^14.1.1",
     "@angular/compiler": "^14.1.1",
     "@angular/core": "^14.1.1",
+    "@angular/elements": "^14.1.1",
     "@angular/forms": "^14.1.1",
     "@angular/platform-browser": "^14.1.1",
     "@angular/platform-browser-dynamic": "^14.1.1",
     "@angular/router": "^14.1.1",
-    "@auth0/angular-jwt": "^5.0.1",
+    "@auth0/angular-jwt": "^5.0.1"
+  },
+  "dependencies": {
     "@datorama/akita": "^7.1.1",
-    "@ngscaffolding/models": "2.0.302",
-    "dateformat": "^3.0.3",
-    "oidc-client": "^1.10.1",
-    "rxjs": "7.5.6",
-    "tslib": "^2.0.0",
-    "uuid": "^8.3.2",
-    "zone.js": "~0.11.4"
+    "@ngscaffolding/models": "^2.0.303",
+    "socket.io-client": "^3.1.2"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^14.1.1",

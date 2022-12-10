@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Query, toBoolean } from '@datorama/akita';
 import { BasicUser } from '@ngscaffolding/models';
-
 import { AuthenticationStore, AuthenticationState } from './userAuthentication.store';
 
 @Injectable({
