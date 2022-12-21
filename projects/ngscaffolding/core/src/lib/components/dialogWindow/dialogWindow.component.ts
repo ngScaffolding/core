@@ -8,6 +8,7 @@ import { Component, OnInit, OnChanges, OnDestroy, SimpleChanges, EventEmitter, O
 })
 export class DialogWindowComponent implements OnInit, OnChanges, OnDestroy {
     @Output() closed = new EventEmitter<any>();
+    @Output() saved = new EventEmitter<any>();
 
     ngOnChanges(changes: SimpleChanges): void {}
     ngOnDestroy(): void {}
@@ -18,5 +19,6 @@ export class DialogWindowComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     save(event: any) {
+        this.saved.emit(event);
     }
 }
