@@ -1,15 +1,11 @@
-import {
-  CanActivate,
-  ActivatedRouteSnapshot,
-  RouterStateSnapshot
-} from '@angular/router';
+import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { Injectable } from '@angular/core';
 import { UserAuthenticationQuery } from '../services/userAuthentication/userAuthentication.query';
 import { UserAuthenticationBase } from '../services/userAuthentication/UserAuthenticationBase';
 
 
 @Injectable()
-export class AuthoriseRoleGuard implements CanActivate {
+export class AuthoriseRoleGuard  {
   constructor(
     private authService: UserAuthenticationBase,
     private authQuery: UserAuthenticationQuery

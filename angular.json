@@ -45,6 +45,5 @@
     }},
   "cli": {
     "analytics": false
-  },
-  "defaultProject": "@ngscaffolding/core"
+  }
 }
