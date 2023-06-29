@@ -79,7 +79,7 @@ export class ReferenceValuesService {
     for (const loopName of namesArray) {
       const list = this.refValuesQuery.getAll({
         filterBy: (entity) =>
-          entity.name.toLowerCase().includes(loopName.toLowerCase()),
+          entity?.name?.toLowerCase().includes(loopName.toLowerCase()),
       });
       if (notifyOthers) {
         this.socketService.sendCacheClear(loopName);
