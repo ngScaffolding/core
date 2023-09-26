@@ -22,7 +22,7 @@ export const enum BroadcastTypes {
   providedIn: 'root',
 })
 export class BroadcastService {
-  private _eventBus: Subject<BroadcastEvent>;
+  private _eventBus = new Subject<BroadcastEvent>();
 
   constructor() {
     this._eventBus = new Subject<BroadcastEvent>();
