@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { QueryEntity } from '@datorama/akita';
+
 import { Role } from '@ngscaffolding/models';
 
 import { RoleState, RolesStore } from './roles.store';

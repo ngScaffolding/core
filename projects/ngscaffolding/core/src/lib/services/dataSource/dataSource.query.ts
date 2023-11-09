@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { QueryEntity } from '@datorama/akita';
+
 import { DataResults } from '@ngscaffolding/models';
 import { DataSourceState, DataSourceStore } from './dataSource.store';
 

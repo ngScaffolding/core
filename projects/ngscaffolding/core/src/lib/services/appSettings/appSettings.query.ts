@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { QueryEntity } from '@datorama/akita';
 import { AppSettingsValue } from '@ngscaffolding/models';
 import { AppSettingsStore, AppSettingsState } from './appSettings.store';
 
