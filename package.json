@@ -1,6 +1,6 @@
 {
   "name": "@ngscaffolding/core",
-  "version": "2.0.600",
+  "version": "2.0.502",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

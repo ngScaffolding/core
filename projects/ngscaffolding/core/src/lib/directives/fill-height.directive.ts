@@ -10,7 +10,8 @@ import { LoggingService } from '../services/logging/logging.service';
 // eslint-disable-next-line @angular-eslint/directive-selector
 @Directive({ selector: '[ngsFillHeight]' })
 export class FillHeightDirective implements AfterViewInit {
-  @Input() fixedHeight: number = 0;
+  @Input() footerElement = null;
+  @Input() fixedHeight = 0;
   @Input() relativeToParentPercent = 0;
   @Input() deductValue = 0;
 
@@ -42,9 +43,9 @@ export class FillHeightDirective implements AfterViewInit {
       }
       const elementOffsetTop = this.getElementOffsetTop();
       const elementMarginBottom = this.el.nativeElement.style.marginBottom;
-      // const footerElementMargin = this.getfooterElementMargin();
+      const footerElementMargin = this.getfooterElementMargin();
 
-      this.el.nativeElement.style.height = `${windowHeight - elementOffsetTop - 16 - Number(this.deductValue)}px`;
+      this.el.nativeElement.style.height = `${windowHeight - footerElementMargin - elementOffsetTop - 16 - Number(this.deductValue)}px`;
     }
   }
 
@@ -52,11 +53,11 @@ export class FillHeightDirective implements AfterViewInit {
     return this.el.nativeElement.getBoundingClientRect().top;
   }
 
-  // private getfooterElementMargin() {
-  //   if (!this.footerElement) {
-  //     return 0;
-  //   }
-  //   const footerStyle = window.getComputedStyle(this.footerElement);
-  //   return parseInt(footerStyle.height, 10);
-  // }
+  private getfooterElementMargin() {
+    if (!this.footerElement) {
+      return 0;
+    }
+    const footerStyle = window.getComputedStyle(this.footerElement);
+    return parseInt(footerStyle.height, 10);
+  }
 }
