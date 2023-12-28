@@ -9,6 +9,10 @@ export class NgsDateTimePipe implements PipeTransform {
   constructor(private appSettings: AppSettingsQuery) {}
   transform(inputDate: Date): string {
     if (inputDate) {
+      if (Array.isArray(inputDate)) {
+        inputDate = inputDate[0];
+      }
+      
       // If a string gets through, convert to date object
       if (typeof inputDate === 'string' || inputDate instanceof String) {
         inputDate = new Date(inputDate);
