@@ -195,6 +195,10 @@ export class UserAuthenticationService implements UserAuthenticationBase {
             newUser.role = tokenDetails['role'];
         }
 
+        if (tokenDetails['permissions']) {
+          newUser.permissions = tokenDetails['permissions'];
+      }
+
         if (tokenDetails['email']) {
             newUser.email = tokenDetails['email'];
         }

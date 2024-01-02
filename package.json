@@ -1,6 +1,6 @@
 {
   "name": "@ngscaffolding/core",
-  "version": "2.0.600",
+  "version": "2.0.700",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@datorama/akita": "^8.0.1",
-    "@ngscaffolding/models": "^2.0.306",
+    "@ngscaffolding/models": "^2.0.307",
     "socket.io-client": "^3.1.2"
   },
   "devDependencies": {

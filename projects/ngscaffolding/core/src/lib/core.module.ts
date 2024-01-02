@@ -23,12 +23,14 @@ import { VERSION } from './version';
 import { Optional } from '@angular/core';
 import { SkipSelf } from '@angular/core';
 import { ShowAuthDirective } from './directives/show-auth.directive';
+import { HasPermissionsDirective } from './directives/has-permission.directive';
 
 @NgModule({
   imports: [CommonModule, FormsModule, HttpClientModule],
   declarations: [
     FillHeightDirective,
     ShowAuthDirective,
+    HasPermissionsDirective,
     ButtonColourPipe,
     NgsDatePipe,
     NgsDateTimePipe,
@@ -44,6 +46,7 @@ import { ShowAuthDirective } from './directives/show-auth.directive';
     DateAgoPipe,
     FillHeightDirective,
     ShowAuthDirective,
+    HasPermissionsDirective,
     DialogWindowComponent,
   ],
 })

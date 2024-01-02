@@ -60,6 +60,7 @@ export { SoftwareVersion, VersionsService } from './lib/services/versions/versio
 
 export { FillHeightDirective } from './lib/directives/fill-height.directive';
 export { ShowAuthDirective } from './lib/directives/show-auth.directive';
+export { HasPermissionsDirective } from './lib/directives/has-permission.directive';
 
 // Pipes
 export { ButtonColourPipe } from './lib/pipes/buttonColour.pipe';
