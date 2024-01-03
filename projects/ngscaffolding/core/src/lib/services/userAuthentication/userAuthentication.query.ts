@@ -29,4 +29,8 @@ export class UserAuthenticationQuery extends Query<AuthenticationState> {
     getUser(): BasicUser {
         return this.getValue().userDetails;
     }
+
+    hasPermission(permission: string): boolean {
+        return this.getValue()?.userDetails?.permissions?.indexOf(permission) > -1;;
+    }
 }
