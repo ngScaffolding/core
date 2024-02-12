@@ -2,13 +2,13 @@
   "name": "@ngscaffolding/core",
   "version": "17.0.001",
   "peerDependencies": {
-    "@angular/common": "^17.0.0",
-    "@angular/core": "^17.0.0",
-    "@auth0/angular-jwt": "^5.0.1"
+    "@angular/common": ">17.x",
+    "@angular/core": ">17.x",
+    "@auth0/angular-jwt": "^5.x"
   },
   "dependencies": {
-    "@ngscaffolding/models": "^2.0.303",
-    "tslib": "^2.3.0"
+    "@ngscaffolding/models": "*",
+    "tslib": ">2.x"
 
   }
 }
