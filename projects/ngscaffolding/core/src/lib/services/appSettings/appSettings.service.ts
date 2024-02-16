@@ -2,39 +2,26 @@ import { Injectable, Type } from '@angular/core';
 
 import { LoggingService } from '../logging/logging.service';
 import { HttpClient } from '@angular/common/http';
-import { AppSettingsStore } from './appSettings.store';
-import { AppSettingsQuery } from './appSettings.query';
 import { Observable } from 'rxjs';
-import { timeout, retry } from 'rxjs/operators';
-import {
-  AppSettings,
-  AppSettingsValue,
-} from '@ngscaffolding/models';
+import { timeout, retry, map } from 'rxjs/operators';
+import { BaseStateService } from '../base-state.service';
+import { AppSettings, AppSettingsValue } from '@ngscaffolding/models';
 
 @Injectable({
   providedIn: 'root',
 })
-export class AppSettingsService {
-
-  public loading$: Observable<boolean>;
+export class AppSettingsService extends BaseStateService<AppSettingsValue> {
 
   private className = 'AppSettingsService';
 
-  constructor(
-    private appSettingsStore: AppSettingsStore,
-    private appSettingsQuery: AppSettingsQuery,
-    private logger: LoggingService,
-    private http: HttpClient
-  ) {
+  constructor(private logger: LoggingService, private http: HttpClient) {
     console.log('AppSettingsService Constructor');
+    super({ value: {} });
   }
 
   public setValue(name: string, value: any): void {
-    if (this.appSettingsQuery.hasEntity(name)) {
-      this.appSettingsStore.update(name, { name, value });
-    } else {
-      this.appSettingsStore.add({ name, value });
-    }
+    this.state[name] = value;
+    this.stateUpdated.next(this.state);
 
     if (name === AppSettings.apiHome) {
       this.loadFromServer(value.toString());
@@ -42,17 +29,14 @@ export class AppSettingsService {
   }
 
   public getValue(name: string): any {
-    if (this.appSettingsQuery.hasEntity(name)) {
-      return this.appSettingsQuery.getEntity(name).value;
-    } else {
-      return null;
+    if (this.state[name]) {
+      return this.state[name];
     }
   }
 
   public setValues(settings: any): void {
     // Mark store as loading
-    this.appSettingsStore.setLoading(true);
-    this.appSettingsStore.update({ isInitialised: false });
+    this.setLoading(true);
 
     // Load values
     if (settings) {
@@ -65,21 +49,20 @@ export class AppSettingsService {
       });
     }
 
-    this.appSettingsStore.setLoading(false);
-    this.appSettingsStore.update({ isInitialised: true });
+    this.setLoading(false);
   }
 
   public getBoolean(name: string): Observable<boolean> {
-    return this.appSettingsQuery.selectEntity(name, (entity) => entity.value);
+    return this.stateUpdated$.pipe(map((state) => state[name] as boolean));
   }
 
   public getString(name: string): Observable<string> {
-    return this.appSettingsQuery.selectEntity(name, (entity) => entity.value);
+    return this.stateUpdated$.pipe(map((state) => state[name] as string));
   }
 
   private loadFromServer(apiHome: string) {
     // Mark store as loading
-    this.appSettingsStore.setLoading(true);
+    this.setLoading(true);
 
     // Load values from Server
     this.http
@@ -92,11 +75,10 @@ export class AppSettingsService {
               this.setValue(appValue.name, appValue.value);
             });
           }
-          this.appSettingsStore.setLoading(false);
-          this.appSettingsStore.update({ isInitialised: true });
+          this.setLoading(false);
         },
         (err) => {
-          this.appSettingsStore.setLoading(false);
+          this.setLoading(false);
         }
       );
   }

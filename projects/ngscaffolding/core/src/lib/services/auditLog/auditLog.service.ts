@@ -4,12 +4,12 @@ import { HttpClient } from '@angular/common/http';
 import { AppSettingsQuery } from '../appSettings/appSettings.query';
 import { timeout, retry, finalize } from 'rxjs/operators';
 import { UserAuthenticationQuery } from '../userAuthentication/userAuthentication.query';
-import { AuditLogStore } from './auditLog.store';
-import { AuditLogQuery } from './auditLog.query';
+
 import { v4 as uuidv4 } from 'uuid';
 import { ZuluDateHelper } from '@ngscaffolding/models';
 import { AppSettings } from '@ngscaffolding/models';
 import { AuditLog } from '@ngscaffolding/models';
+import { AppSettingsService } from '../appSettings/appSettings.service';
 
 @Injectable({
   providedIn: 'root'
@@ -22,12 +22,16 @@ export class AuditLogService {
   private defaultLog: AuditLog = {};
 
   constructor(
-    private auditLogStore: AuditLogStore,
-    private auditLogQuery: AuditLogQuery,
-    private appSettingsQuery: AppSettingsQuery,
+    private appSettings: AppSettingsService,
     private userQuery: UserAuthenticationQuery,
     private http: HttpClient
   ) {
+    appSettings.stateUpdated$.subscribe((appSettings) => {
+      if (appSettings) {
+        this.polling = appSettings.mobileDefaultPolling;
+        this.retryVal = appSettings.mobileDefaultRetries;
+      }
+    });
     appSettingsQuery
       .selectEntity(AppSettings.mobileDefaultPolling)
       .subscribe(val => (this.polling = val.value > 0 ? val.value : 30000));
