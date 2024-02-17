@@ -4,51 +4,45 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
 import { AppSettingsService } from '../appSettings/appSettings.service';
-
 import { LoggingService } from '../logging/logging.service';
-import { DataSourceStore } from './dataSource.store';
-import { DataSourceQuery } from './dataSource.query';
 import { AppAuditService } from '../appAudit/appAudit.service';
 import { ApplicationLog } from '@ngscaffolding/models';
 import { AppSettings } from '@ngscaffolding/models';
 import { DataSourceRequest } from '@ngscaffolding/models';
 import { DataResults } from '@ngscaffolding/models';
+import { BaseStateArrayService } from '../base-state-array.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class DataSourceService {
+export class DataSourceService extends BaseStateArrayService<DataResults>{
   private className = 'DataSourceService';
   private inflightRequests = new Map<string, Observable<DataResults>>();
 
   constructor(
     private http: HttpClient,
-    private dataSourceStore: DataSourceStore,
-    private dataSourceQuery: DataSourceQuery,
     private appSettingsService: AppSettingsService,
     private appAuditService: AppAuditService,
     private logger: LoggingService
-  ) {}
-
-  decorateInput(inputDetails: any): any {
-    return null;
+  ) {
+    super([] as DataResults[], 'key');
   }
 
   getDataSource(dataRequest: DataSourceRequest): Observable<DataResults> {
     const key = this.getKey(dataRequest);
 
     if (dataRequest.forceRefresh) {
-      this.dataSourceStore.remove(key);
+      this.remove(key);
     }
 
-    const currentCacheValue = this.dataSourceQuery.getEntity(key);
+    const currentCacheValue = this.getEntity(key);
     if (currentCacheValue) {
       if (currentCacheValue.expiresWhen > new Date()) {
         // Return good cached value
         return of(currentCacheValue);
       } else {
         // Expired - Bad cache
-        this.dataSourceStore.remove(key);
+        this.remove(key);
       }
     }
 
@@ -122,7 +116,7 @@ export class DataSourceService {
               // });
 
               // Update the Store to tell the world we have data
-              this.dataSourceStore.update(key, newResults);
+              this.updateState(newResults);
               this.inflightRequests.delete(key);
               observer.next(newResults);
               observer.complete();
@@ -140,7 +134,7 @@ export class DataSourceService {
               //   result: err.message,
               // });
 
-              this.dataSourceStore.update(key, errorResults);
+              this.updateState(errorResults);
               this.inflightRequests.delete(key);
 
               this.logger.error(err, 'DataSource.Service.getDataSource', false);
