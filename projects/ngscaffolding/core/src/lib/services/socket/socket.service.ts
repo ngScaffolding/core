@@ -5,8 +5,9 @@ import { AppSettings } from '@ngscaffolding/models';
 import { AppSettingsService } from '../appSettings/appSettings.service';
 import { LoggingService } from '../logging/logging.service';
 import { Subject } from 'rxjs';
-import { UserAuthenticationQuery } from '../userAuthentication/userAuthentication.query';
-import { NotificationStore } from '../notification/notification.store';
+import { NotificationService } from '../notification/notification.service';
+import { UserAuthenticationService } from '../userAuthentication/userAuthentication.service';
+
 
 @Injectable({
   providedIn: 'root',
@@ -20,21 +21,21 @@ export class SocketService {
 
   constructor(private appSettingsService: AppSettingsService,
     private logger: LoggingService,
-    private notificationStore: NotificationStore,
-    private authQuery: UserAuthenticationQuery) {
+    private notificationService: NotificationService,
+    private authQuery: UserAuthenticationService) {
     this.io = io(this.appSettingsService.getValue(AppSettings.apiHome));
 
     this.io.on('connect', () => {
       logger.info(`Socket.io Connected ID:${this.io.id}`);
 
       if (this.authQuery.isAuthenticated()) {
-        this.io.emit('logon', this.authQuery.getUserId());
+        this.io.emit('logon', this.authQuery.getState().userDetails.userId);
       }
     });
 
     this.io.prependAny((eventName, ...args) => {
       logger.info(`Socket recv: ${eventName}`, null, args);
-      this.notificationStore.add(args[0]);
+      this.notificationService.showMessage(args[0]);
     });
 
     this.io.on('cacheFlush', (refName: string) => {
@@ -43,7 +44,7 @@ export class SocketService {
 
     this.authQuery.authenticated$.subscribe(auth => {
       if (auth) {
-        this.io.emit('logon', this.authQuery.getUserId());
+        this.io.emit('logon', this.authQuery.getState().userDetails.userId);
       }
     });
 

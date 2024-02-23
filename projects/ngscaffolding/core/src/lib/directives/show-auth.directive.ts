@@ -7,8 +7,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { LoggingService } from '../services/logging/logging.service';
-import { UserAuthenticationQuery } from '../services/userAuthentication/userAuthentication.query';
+import { UserAuthenticationService } from '../services/userAuthentication/userAuthentication.service';
 
 // eslint-disable-next-line @angular-eslint/directive-selector
 @Directive({ selector: '[ngsShowAuth]' })
@@ -18,7 +17,7 @@ export class ShowAuthDirective implements AfterViewInit, OnDestroy {
 
   constructor(
     private el: ElementRef,
-    private authQuery: UserAuthenticationQuery
+    private authQuery: UserAuthenticationService
   ) {}
 
   ngOnDestroy(): void {

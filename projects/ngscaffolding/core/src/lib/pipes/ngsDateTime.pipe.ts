@@ -1,12 +1,12 @@
 import dateFormat, { masks } from 'dateformat';
 
 import { Pipe, PipeTransform } from '@angular/core';
-import { AppSettingsQuery } from '../services/appSettings/appSettings.query';
 import { AppSettings } from '@ngscaffolding/models';
+import { AppSettingsService } from '../../public-api';
 
 @Pipe({ name: 'ngsDateTime' })
 export class NgsDateTimePipe implements PipeTransform {
-  constructor(private appSettings: AppSettingsQuery) {}
+  constructor(private appSettings: AppSettingsService) {}
   transform(inputDate: Date): string {
     if (inputDate) {
       // If a string gets through, convert to date object
@@ -17,7 +17,7 @@ export class NgsDateTimePipe implements PipeTransform {
       const userTimezoneOffset = inputDate.getTimezoneOffset() * 60000;
       const zuluDate = new Date(inputDate.getTime() + userTimezoneOffset);
 
-      const format = this.appSettings.getEntity(AppSettings.dateTimeFormat);
+      const format = this.appSettings.getValue(AppSettings.dateTimeFormat);
       if (format && format.value) {
         return dateFormat(zuluDate, format.value);
       } else {

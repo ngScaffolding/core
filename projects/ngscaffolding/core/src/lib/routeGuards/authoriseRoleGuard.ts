@@ -1,6 +1,5 @@
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { Injectable } from '@angular/core';
-import { UserAuthenticationQuery } from '../services/userAuthentication/userAuthentication.query';
 import { UserAuthenticationBase } from '../services/userAuthentication/UserAuthenticationBase';
 
 
@@ -8,12 +7,11 @@ import { UserAuthenticationBase } from '../services/userAuthentication/UserAuthe
 export class AuthoriseRoleGuard  {
   constructor(
     private authService: UserAuthenticationBase,
-    private authQuery: UserAuthenticationQuery
   ) {}
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
 
-    if (this.authQuery.isAuthenticated()) {
+    if (this.authService.isAuthenticated()) {
       return true;
     }
 

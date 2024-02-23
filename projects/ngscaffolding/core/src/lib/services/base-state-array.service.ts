@@ -3,10 +3,13 @@ import { BehaviorSubject } from 'rxjs';
 export class BaseStateArrayService<T> {
   protected state: T[];
   protected stateUpdated = new BehaviorSubject<T[]>(null);
+  protected activeUpdated = new BehaviorSubject<T>(null);
+
   protected loadingUpdated = new BehaviorSubject<boolean>(false);
 
   public stateUpdated$ = this.stateUpdated.asObservable();
   public loading$ = this.stateUpdated.asObservable();
+  public active$ = this.stateUpdated.asObservable();
 
   constructor(state: T[], private key: string) {
     this.state = state;
@@ -19,15 +22,42 @@ export class BaseStateArrayService<T> {
     return null;
   }
 
+  public hasEntity(key: string): boolean {
+    if (this.state?.length > 0) {
+      return this.state.some((searchItem) => searchItem[this.key] === key);
+    }
+    return false;
+  }
+
   public setState(state: T) {
     let existing = this.findValue(state[this.key]);
-    if(!!existing){
+    if (!!existing) {
       existing = state;
-    }
-    else{
+    } else {
       this.state.push(state);
     }
     this.stateUpdated.next(this.state);
+  }
+
+  public setAllState(allState: T[]) {
+    this.resetState();
+
+    allState.forEach((state) => {
+      this.state.push(state);
+
+      this.stateUpdated.next(this.state);
+    });
+  }
+
+  public getAll() {
+    return this.state;
+  }
+
+  public setActive(key: string) {
+    const existing = this.findValue(key);
+    if (!!existing) {
+      this.activeUpdated.next(existing);
+    }
   }
 
   public resetState() {
@@ -36,7 +66,7 @@ export class BaseStateArrayService<T> {
 
   public remove(key: string) {
     const existing = this.findValue(key);
-    if(!!existing){
+    if (!!existing) {
       this.state = this.state.filter((item) => item[this.key] !== key);
       this.stateUpdated.next(this.state);
     }
@@ -44,10 +74,9 @@ export class BaseStateArrayService<T> {
 
   public updateState(state: Partial<T>) {
     let existing = this.findValue(state[this.key]);
-    if(!!existing){
+    if (!!existing) {
       existing = { ...existing, ...state };
-    }
-    else{
+    } else {
       this.state.push(state as T);
     }
     this.stateUpdated.next(this.state);
@@ -63,5 +92,9 @@ export class BaseStateArrayService<T> {
 
   private findValue(key: string): T {
     return this.state.find((searchItem) => searchItem[this.key] === key);
+  }
+
+  public selectLoading() {
+    return this.loadingUpdated.asObservable();
   }
 }

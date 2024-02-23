@@ -4,17 +4,17 @@ import { Injectable } from '@angular/core';
 
 import { AppSettingsService } from '../appSettings/appSettings.service';
 import { LoggingService } from '../logging/logging.service';
-import { ReferenceValuesQuery } from './referenceValues.query';
-import { ReferenceValuesStore } from './referenceValues.store';
+
 import { timeout, retry, tap } from 'rxjs/operators';
 import { AppSettings } from '@ngscaffolding/models';
 import { ReferenceValue } from '@ngscaffolding/models';
 import { SocketService } from '../socket/socket.service';
+import { BaseStateArrayService } from '../base-state-array.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class ReferenceValuesService {
+export class ReferenceValuesService extends BaseStateArrayService<ReferenceValue> {
   private className = 'ReferenceValuesService';
 
   private requestsInFlight = new Map<string, Observable<ReferenceValue>>();
@@ -22,11 +22,10 @@ export class ReferenceValuesService {
   constructor(
     private http: HttpClient,
     private appSettingsService: AppSettingsService,
-    private refValuesQuery: ReferenceValuesQuery,
-    private refValuesStore: ReferenceValuesStore,
     private logger: LoggingService,
     private socketService: SocketService
   ) {
+    super([], 'compositeKey');
     socketService.cacheFlush$.subscribe((refValue) => {
       this.clearReferenceValue(refValue, false);
     });
@@ -77,26 +76,23 @@ export class ReferenceValuesService {
     }
 
     for (const loopName of namesArray) {
-      const list = this.refValuesQuery.getAll({
-        filterBy: (entity) =>
-          entity?.name?.toLowerCase().includes(loopName.toLowerCase()),
-      });
+      const list = this.getAll().filter((entity) =>
+        entity?.name?.toLowerCase().includes(loopName.toLowerCase())
+      );
+
       if (notifyOthers) {
         this.socketService.sendCacheClear(loopName);
       }
 
       for (const refValue of list) {
-        this.refValuesStore.remove(refValue.compositeKey);
+        this.remove(refValue.compositeKey);
       }
     }
   }
 
   setReferenceValue(referenceValue: ReferenceValue) {
     referenceValue.compositeKey = this.getKey(referenceValue.name, '');
-    this.refValuesStore.upsert(
-      this.getKey(referenceValue.name, ''),
-      referenceValue
-    );
+    this.setState(referenceValue);
   }
 
   //
@@ -107,8 +103,8 @@ export class ReferenceValuesService {
     seed = '',
     childDepth = 0
   ): Observable<ReferenceValue> {
-    if (this.refValuesQuery.hasEntity(this.getKey(name, seed))) {
-      const cacheValue = this.refValuesQuery.getEntity(this.getKey(name, seed));
+    if (this.hasEntity(this.getKey(name, seed))) {
+      const cacheValue = this.getEntity(this.getKey(name, seed));
       if (this.isExpired(cacheValue)) {
         // Expired cache value. Go get a new one
         return this.downloadRefValue(name, seed);
@@ -117,11 +113,11 @@ export class ReferenceValuesService {
       // If we get one from Cache, thats handy to use
       this.logger.info(`Reference Values From Cache ${name}::${seed}`);
       return new Observable<ReferenceValue>((observer) => {
-        observer.next(this.refValuesQuery.getEntity(this.getKey(name, seed)));
+        observer.next(this.getEntity(this.getKey(name, seed)));
         observer.complete();
       });
     } else if (childDepth > 0) {
-      const refValue = this.refValuesQuery.getEntity(this.getKey(name, ''));
+      const refValue = this.getEntity(this.getKey(name, ''));
       if (refValue) {
         const parentRef = refValue.referenceValueItems.find(
           (parent) => parent.value === seed
@@ -167,7 +163,7 @@ export class ReferenceValuesService {
             value.compositeKey = this.getKey(name, seed);
             value.whenStored = new Date();
 
-            this.refValuesStore.upsert(this.getKey(name, seed), value);
+            this.setState(value);
             this.requestsInFlight.delete(this.getKey(name, seed));
 
             observer.next(value);
@@ -175,12 +171,12 @@ export class ReferenceValuesService {
           },
           (err) => {
             // Error here. If we have a valid value, respond with that
-            if (this.refValuesQuery.hasEntity(this.getKey(name, seed))) {
+            if (this.hasEntity(this.getKey(name, seed))) {
               this.logger.info(
                 `Reference Values From HTTP Failed using last Cache ${name}::${seed}`
               );
               observer.next(
-                this.refValuesQuery.getEntity(this.getKey(name, seed))
+                this.getEntity(this.getKey(name, seed))
               );
               observer.complete();
             } else {

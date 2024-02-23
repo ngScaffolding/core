@@ -1,15 +1,14 @@
 import { Injectable } from '@angular/core';
 
 import { HttpClient } from '@angular/common/http';
-import { AppSettingsQuery } from '../appSettings/appSettings.query';
 import { timeout, retry, finalize } from 'rxjs/operators';
-import { UserAuthenticationQuery } from '../userAuthentication/userAuthentication.query';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ZuluDateHelper } from '@ngscaffolding/models';
 import { AppSettings } from '@ngscaffolding/models';
 import { AuditLog } from '@ngscaffolding/models';
 import { AppSettingsService } from '../appSettings/appSettings.service';
+import { UserAuthenticationService } from '../userAuthentication/userAuthentication.service';
 
 @Injectable({
   providedIn: 'root'
@@ -23,7 +22,7 @@ export class AuditLogService {
 
   constructor(
     private appSettings: AppSettingsService,
-    private userQuery: UserAuthenticationQuery,
+    private userService: UserAuthenticationService,
     private http: HttpClient
   ) {
     appSettings.stateUpdated$.subscribe((appSettings) => {
@@ -53,10 +52,10 @@ export class AuditLogService {
     }
 
     if (!workingLog.userID) {
-      workingLog.userID = this.userQuery.getUserId();
+      workingLog.userID = this.userService.getState().userDetails.userId;
     }
 
-    this.auditLogStore.add(workingLog);
+    this.set(workingLog);
     try {
     } catch (err) {
       console.log('Unable to send AppLog, offline?');

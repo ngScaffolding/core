@@ -5,41 +5,41 @@ import { finalize, take } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 
 import { LoggingService } from '../logging/logging.service';
-import { AppSettingsQuery } from '../appSettings/appSettings.query';
-import { UserAuthenticationQuery } from '../userAuthentication/userAuthentication.query';
-import { WidgetStore } from './widget.store';
-import { WidgetQuery } from './widget.query';
+
 import { AppSettings } from '@ngscaffolding/models';
 import { WidgetModelBase } from '@ngscaffolding/models';
+import { BaseStateArrayService } from '../base-state-array.service';
+import { AppSettingsService } from '../appSettings/appSettings.service';
+import { UserAuthenticationService } from '../userAuthentication/userAuthentication.service';
 
 
 @Injectable({
   providedIn: 'root'
 })
-export class WidgetService {
+export class WidgetService extends BaseStateArrayService<WidgetModelBase> {
   private className = 'core.WidgetService';
 
   private apiHome: string;
 
   constructor(
     private http: HttpClient,
-    private widgetStore: WidgetStore,
-    private widgetQuery: WidgetQuery,
-    private appSettingsQuery: AppSettingsQuery,
-    private authQuery: UserAuthenticationQuery,
+
+    private appSettingsQuery: AppSettingsService,
+    private authQuery: UserAuthenticationService,
     private log: LoggingService,
     public rolesService: RolesService
   ) {
+    super([], 'name');
+
     // First Time load away
-    this.widgetStore.setLoading(false);
+    this.setLoading(false);
 
     // Wait for settings, then load from server
-    combineLatest(this.authQuery.authenticated$, this.appSettingsQuery.selectEntity(AppSettings.apiHome))
+    combineLatest(this.authQuery.authenticated$, this.appSettingsQuery.getValue(AppSettings.apiHome))
       .subscribe(([authenticated, apiHome]) => {
         if (authenticated && apiHome) {
-          this.apiHome = apiHome.value;
-          this.widgetQuery
-            .selectLoading()
+          this.apiHome = apiHome.toString();
+          this.selectLoading()
             .pipe(take(1))
             .subscribe(loading => {
               if (!loading) {
@@ -47,23 +47,23 @@ export class WidgetService {
               }
             });
         } else if (!authenticated) {
-          this.widgetStore.remove();
+          this.resetState();
         }
       });
   }
   public downloadWidgetItems() {
     // Mark loading status
-    this.widgetStore.setLoading(true);
+    this.setLoading(true);
 
     this.http
       .get<Array<WidgetModelBase>>(this.apiHome + '/api/v1/widgets')
       .pipe(
         finalize(() => {
-          this.widgetStore.setLoading(false);
+          this.setLoading(false);
         })
       )
       .subscribe(widgetItems => {
-        this.widgetStore.add(widgetItems);
+        this.setAllState(widgetItems);
       });
   }
 }

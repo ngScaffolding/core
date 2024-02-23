@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { UserAuthenticationQuery } from '../userAuthentication/userAuthentication.query';
-import { LoggingService } from '../logging/logging.service';
 import { RolesService } from '../rolesService/roles.service';
 import { Observable } from 'rxjs';
 import { timeout } from 'rxjs/operators';
@@ -23,8 +21,6 @@ export class UserService implements UserServiceBase  {
   constructor(
     private http: HttpClient,
     private appSettingsService: AppSettingsService,
-    private authQuery: UserAuthenticationQuery,
-    private log: LoggingService,
     public rolesService: RolesService
   ) {}
 

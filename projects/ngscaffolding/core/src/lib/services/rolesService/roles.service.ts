@@ -1,40 +1,38 @@
 import { Injectable } from '@angular/core';
-import { UserAuthenticationQuery } from '../userAuthentication/userAuthentication.query';
-import { RolesQuery } from './roles.query';
-import { RolesStore } from './roles.store';
-import { AppSettingsQuery } from '../appSettings/appSettings.query';
+
 import { combineLatest } from 'rxjs';
 import { take, finalize } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { DataSourceService } from '../dataSource/dataSource.service';
-import { AppSettings } from '@ngscaffolding/models';
+import { AppSettings, Role } from '@ngscaffolding/models';
 import { SystemDataSourceNames } from '@ngscaffolding/models';
+import { BaseStateArrayService } from '../base-state-array.service';
+import { UserAuthenticationService } from '../userAuthentication/userAuthentication.service';
+import { AppSettingsService } from '../appSettings/appSettings.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class RolesService {
+export class RolesService extends BaseStateArrayService<Role> {
   private routeRoles = new Map<string, string[]>();
   private apiHome: string;
 
   constructor(
     private http: HttpClient,
-    private rolesQuery: RolesQuery,
-    private appSettingsQuery: AppSettingsQuery,
     private dataSourceService: DataSourceService,
-    private rolesStore: RolesStore,
-    public authQuery: UserAuthenticationQuery
+    public authService: UserAuthenticationService,
+    public appSettingsService: AppSettingsService
   ) {
+    super([], 'name');
     // First Time load away
-    this.rolesStore.setLoading(false);
+    this.setLoading(false);
 
     // Wait for settings, then load from server
-    combineLatest(this.authQuery.authenticated$, this.appSettingsQuery.selectEntity(AppSettings.apiHome))
+    combineLatest(this.authService.authenticated$, this.appSettingsService.getValue(AppSettings.apiHome))
       .subscribe(([authenticated, apiHome]) => {
         if (authenticated && apiHome) {
-          this.apiHome = apiHome.value;
-          this.rolesQuery
-            .selectLoading()
+          this.apiHome = apiHome.toString()
+          this.selectLoading()
             .pipe(take(1))
             .subscribe(loading => {
               if (!loading) {
@@ -42,33 +40,33 @@ export class RolesService {
               }
             });
         } else if (!authenticated) {
-          this.rolesStore.remove();
+          this.resetState();
         }
       });
   }
 
   public downloadRoles() {
     // Mark loading status
-    this.rolesStore.setLoading(true);
+    this.setLoading(true);
 
     this.dataSourceService
       .getDataSource({ name: SystemDataSourceNames.ROLES_SELECT })
       .pipe(
         finalize(() => {
-          this.rolesStore.setLoading(false);
+          this.setLoading(false);
         })
       )
       .subscribe(results => {
         if (results && !results.error) {
-          this.rolesStore.add(results.jsonData);
-          this.rolesStore.setLoading(false);
+          this.setState(results.jsonData);
+          this.setLoading(false);
         }
       });
   }
 
   // Checks if the current user is in this role.
   public isInRole(role: string): boolean {
-    const currentUser = this.authQuery.getValue().userDetails;
+    const currentUser = this.authService.getState().userDetails;
     if (currentUser && currentUser.role) {
       return currentUser.role.indexOf(role) > -1;
     } else {
@@ -79,7 +77,7 @@ export class RolesService {
   // Checks if the current user is in one of these roles.
   public isInRoles(roles: string[]): boolean {
     let result = false;
-    const currentUser = this.authQuery.getValue().userDetails;
+    const currentUser = this.authService.getState().userDetails;
     if (currentUser && currentUser.role) {
       roles.forEach(role => {
         if (currentUser.role.indexOf(role) > -1) {

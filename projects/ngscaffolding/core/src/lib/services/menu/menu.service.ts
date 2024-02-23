@@ -6,20 +6,24 @@ import { timeout, finalize } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 
 import { LoggingService } from '../logging/logging.service';
-import { AppSettingsQuery } from '../appSettings/appSettings.query';
-import { UserAuthenticationQuery } from '../userAuthentication/userAuthentication.query';
-import { MenuStore } from './menu.store';
-import { MenuQuery } from './menu.query';
+
 import { AppSettings } from '@ngscaffolding/models';
-import {
-  CoreMenuItem,
-  MenuTypes,
-} from '@ngscaffolding/models';
+import { CoreMenuItem, MenuTypes } from '@ngscaffolding/models';
+import { UserAuthenticationService } from '../userAuthentication/userAuthentication.service';
+import { AppSettingsService } from '../appSettings/appSettings.service';
+import { BaseStateService } from '../base-state.service';
+
+export interface MenuState {
+  menuItems?: CoreMenuItem[];
+  addItems?: CoreMenuItem[];
+  quickItems?: CoreMenuItem[];
+  referenceMenuItems?: CoreMenuItem[];
+}
 
 @Injectable({
   providedIn: 'root',
 })
-export class MenuService {
+export class MenuService extends BaseStateService<MenuState> {
   routeSubject = new BehaviorSubject<Array<Route>>([]);
 
   private readonly methodName = 'MenuService';
@@ -30,25 +34,29 @@ export class MenuService {
 
   private apiHome: string;
 
-
   private httpInFlight = false;
   private lockCount = 0;
   private menuDownloaded = false;
 
   constructor(
     private http: HttpClient,
-    private menuStore: MenuStore,
-    private menuQuery: MenuQuery,
-    private appSettingsQuery: AppSettingsQuery,
-    private authQuery: UserAuthenticationQuery,
     private log: LoggingService,
-    public rolesService: RolesService
+    public rolesService: RolesService,
+    public authService: UserAuthenticationService,
+    public appSettingsService: AppSettingsService
   ) {
+    super({
+      menuItems: [],
+      addItems: [],
+      quickItems: [],
+      referenceMenuItems: [],
+    } as MenuState);
+
     // Wait for settings, then load from server
     combineLatest([
-      this.authQuery.authenticated$,
-      this.appSettingsQuery.selectEntity(AppSettings.apiHome),
-      this.appSettingsQuery.selectEntity(AppSettings.isMobile),
+      this.authService.authenticated$,
+      this.appSettingsService.select(AppSettings.apiHome),
+      this.appSettingsService.select(AppSettings.isMobile),
     ]).subscribe(([authenticated, apiHome, isMobile]) => {
       if (authenticated && apiHome && isMobile && !this.menuDownloaded) {
         this.apiHome = apiHome.value;
@@ -62,14 +70,6 @@ export class MenuService {
     });
   }
 
-  public setCurrent(name: string): void {
-    this.menuStore.setActive(name);
-  }
-
-  public reset(): void {
-    this.menuStore.setActive(null);
-  }
-
   public addMenuItemsFromCode(
     menuItems: CoreMenuItem[],
     roles: string[] = null
@@ -78,7 +78,7 @@ export class MenuService {
     this.log.info('Adding MenuItems menuItems', this.methodName, menuItems);
 
     // Wait till user authorised
-    this.authQuery.authenticated$.subscribe((authorised) => {
+    this.authService.authenticated$.subscribe((authorised) => {
       if (authorised) {
         // Save for later use
         this.addMenuItems(menuItems);
@@ -88,49 +88,7 @@ export class MenuService {
   }
 
   public getFolders(): CoreMenuItem[] {
-    return this.menuQuery.getAll({
-      filterBy: [(entity) => entity.type === MenuTypes.Folder],
-    });
-  }
-
-  public delete(menuItem: CoreMenuItem): Observable<any> {
-    return new Observable<any>((observer) => {
-      const obs = this.http.delete(
-        `${this.apiHome}/api/v1/menuitems/${menuItem.name}`
-      );
-      obs.subscribe(
-        () => {
-          // Remove from our store
-          this.menuStore.remove(menuItem.name);
-
-          // Remove from Tree
-          const existingMenus = JSON.parse(
-            JSON.stringify(this.menuQuery.getValue())
-          ).menuItems;
-          let parentMenu: CoreMenuItem;
-          if (menuItem.parent) {
-            parentMenu = existingMenus.find(
-              (menu) =>
-                menu.name &&
-                menu.name.toLowerCase() === menuItem.parent.toLowerCase()
-            );
-          }
-
-          const foundIndex = (parentMenu.items as CoreMenuItem[]).findIndex(
-            (childMenu) => childMenu.name && childMenu.name === menuItem.name
-          );
-          parentMenu.items.splice(foundIndex, 1);
-
-          // Update tree and tell the world
-          this.menuStore.update({ menuItems: existingMenus });
-          observer.next();
-          observer.complete();
-        },
-        (err) => {
-          observer.error(err);
-        }
-      );
-    });
+    return this.menuItems.filter((entity) => entity.type === MenuTypes.Folder);
   }
 
   public saveMenuItem(menuItem: CoreMenuItem): Observable<any> {
@@ -138,40 +96,6 @@ export class MenuService {
       this.apiHome + '/api/v1/menuitems',
       menuItem
     );
-  }
-
-  public updateExistingMenuItem(menuItem: CoreMenuItem): void {
-    // Is this existing?
-    const existing = this.menuQuery.hasEntity(menuItem.name);
-    if (existing) {
-      this.menuStore.upsert(menuItem.name, menuItem);
-    } else {
-      // Add to reference list of menus
-      this.menuStore.add(menuItem);
-    }
-
-    const existingMenus = JSON.parse(JSON.stringify(this.menuQuery.getAll()));
-    let parentMenu: CoreMenuItem;
-    if (menuItem.parent) {
-      parentMenu = existingMenus.find(
-        (menu) => menu.name.toLowerCase() === menuItem.parent.toLowerCase()
-      );
-    }
-    // Add to treeview for menu rendering
-    if (!parentMenu.items || !Array.isArray(parentMenu.items)) {
-      parentMenu.items = [];
-    }
-    if (existing) {
-      const foundIndex = (parentMenu.items as CoreMenuItem[]).findIndex(
-        (childMenu) => childMenu.name === menuItem.name
-      );
-      parentMenu.items[foundIndex] = menuItem;
-    } else {
-      (parentMenu.items as CoreMenuItem[]).push(menuItem);
-    }
-
-    // Update tree and tell the world
-    this.menuStore.update({ menuItems: existingMenus });
   }
 
   public addRoute(route: Route, roles: string[] = null): void {
@@ -216,7 +140,7 @@ export class MenuService {
 
   public addMenuItems(newMenuItems: CoreMenuItem[], findInTree = false): void {
     // Clone so we can amend
-    const fetchedMenuItems = this.menuQuery.getValue().menuItems || [];
+    const fetchedMenuItems = this.menuItems || [];
     this.menuItems = JSON.parse(JSON.stringify(fetchedMenuItems));
 
     this.calculateRouterLinks(newMenuItems);
@@ -240,7 +164,7 @@ export class MenuService {
     // Remove the unatuhorised
     this.menuItems = this.removeUnauthorisedMenuItems(this.menuItems);
 
-    this.menuStore.update({ menuItems: this.menuItems });
+    this.setState({ menuItems: this.menuItems });
   }
 
   private calculateRouterLinks(menuItems: CoreMenuItem[]): void {
@@ -282,7 +206,7 @@ export class MenuService {
     );
 
     if (this.lockCount === 0) {
-      this.menuStore.setLoading(false);
+      this.setLoading(false);
     }
   }
   private addLock(): void {
@@ -292,13 +216,15 @@ export class MenuService {
       this.methodName,
       this.lockCount
     );
-    this.menuStore.setLoading(true);
+    this.setLoading(true);
   }
   // Iterative Call
   private addMenuItemsToReferenceList(menuItems: CoreMenuItem[]): void {
     menuItems.forEach((menuItem) => {
       // Add to Entity Store
-      this.menuStore.upsert(menuItem.name, menuItem);
+      const existing = this.getState().referenceMenuItems || [];
+      existing.push(menuItem);
+      this.updateState({referenceMenuItems: existing});
       if (menuItem.items && Array.isArray(menuItem.items)) {
         this.addMenuItemsToReferenceList(menuItem.items as Array<CoreMenuItem>);
       }
@@ -308,7 +234,7 @@ export class MenuService {
   private removeUnauthorisedMenuItems(
     menuItems: CoreMenuItem[]
   ): CoreMenuItem[] {
-    const user = this.authQuery.getValue();
+    const user = this.authService.getState();
     let userRoles: string[] = [];
     if (user && user.userDetails) {
       userRoles = user.userDetails.role;
@@ -317,8 +243,7 @@ export class MenuService {
     const removingMenus: string[] = [];
     let returnMenus: CoreMenuItem[] = JSON.parse(JSON.stringify(menuItems));
 
-    returnMenus.forEach(menuItem => {
-
+    returnMenus.forEach((menuItem) => {
       let removingThis = false;
 
       // makes sure roles is array
@@ -351,7 +276,6 @@ export class MenuService {
           menuItem.items as CoreMenuItem[]
         );
       }
-
     });
 
     if (removingMenus.length > 0) {
@@ -363,7 +287,6 @@ export class MenuService {
 
     return returnMenus;
   }
-
 
   private upsertMenuItemToExistingTree(newMenuItem: CoreMenuItem): void {
     const menuItems = [...this.menuItems];
@@ -410,15 +333,15 @@ export class MenuService {
     };
 
     if (newMenuItem.isQuickAdd) {
-      const quickAdds = this.menuQuery.getValue().addItems || [];
-      this.menuStore.update(state => ({
-        addItems: [...quickAdds, createdMenuItem]
-      }));
+      const quickAdds = this.getState().addItems || [];
+      this.updateState({
+        addItems: [...quickAdds, createdMenuItem],
+      });
     } else {
-      const quickItems = this.menuQuery.getValue().quickItems || [];
-      this.menuStore.update(state => ({
-        quickItems: [...quickItems, createdMenuItem]
-      }));
+      const quickItems = this.getState().quickItems || [];
+      this.updateState({
+        quickItems: [...quickItems, createdMenuItem],
+      });
     }
   }
 
