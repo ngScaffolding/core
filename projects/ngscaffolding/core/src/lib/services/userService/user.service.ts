@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { RolesService } from '../rolesService/roles.service';
+import { RolesService } from '@ngscaffolding/core';
 import { Observable } from 'rxjs';
 import { timeout } from 'rxjs/operators';
 import { UserServiceBase } from './user.service.base';
-import { AppSettingsService } from '../appSettings/appSettings.service';
+import { AppSettingsService } from '@ngscaffolding/core';
 import { ChangePasswordModel } from '@ngscaffolding/models';
 import { IUserModel } from '@ngscaffolding/models';
 import { AppSettings } from '@ngscaffolding/models';
@@ -16,7 +16,7 @@ import { AppSettings } from '@ngscaffolding/models';
 export class UserService implements UserServiceBase  {
   private className = 'core.UserService';
 
-  private apiHome: string;
+  private apiHome = '';
 
   constructor(
     private http: HttpClient,
@@ -26,22 +26,22 @@ export class UserService implements UserServiceBase  {
 
   getUsers() {
     return new Observable<IUserModel[]>(observer => {
-      this.http.get(`${this.appSettingsService.getValue(AppSettings.apiAuth)}/api/v1/users`);
+      this.http.get(`${this.appSettingsService.getValue(AppSettings.apiHome)}/api/v1/users`);
     }).pipe(timeout(30000));
   }
   createUser(user: any) {
     return new Observable<IUserModel>(observer => {
-      this.http.post(`${this.appSettingsService.getValue(AppSettings.apiAuth)}/api/v1/users`, user);
+      this.http.post(`${this.appSettingsService.getValue(AppSettings.apiHome)}/api/v1/users`, user);
     }).pipe(timeout(30000));
   }
   deleteUser(userId: any) {
     return new Observable<null>(observer => {
-      this.http.delete(`${this.appSettingsService.getValue(AppSettings.apiAuth)}/api/v1/users/${userId}`);
+      this.http.delete(`${this.appSettingsService.getValue(AppSettings.apiHome)}/api/v1/users/${userId}`);
     }).pipe(timeout(30000));
   }
   changePassword(changePasswordModel: ChangePasswordModel) {
     return new Observable<null>(observer => {
-      this.http.post(`${this.appSettingsService.getValue(AppSettings.apiAuth)}/api/v1/users/changePassword`, changePasswordModel)
+      this.http.post(`${this.appSettingsService.getValue(AppSettings.apiHome)}/api/v1/users/changePassword`, changePasswordModel)
         .pipe(timeout(30000))
         .subscribe(response => {
           observer.next(null);
@@ -55,7 +55,7 @@ export class UserService implements UserServiceBase  {
 
   setPassword(changePasswordModel: ChangePasswordModel) {
     return new Observable<null>(observer => {
-      this.http.post(`${this.appSettingsService.getValue(AppSettings.apiAuth)}/api/v1/users/setPassword`, changePasswordModel)
+      this.http.post(`${this.appSettingsService.getValue(AppSettings.apiHome)}/api/v1/users/setPassword`, changePasswordModel)
         .pipe(timeout(30000))
         .subscribe(response => {
           observer.next(null);
@@ -69,20 +69,20 @@ export class UserService implements UserServiceBase  {
 
   resetPassword(userId: any) {
     return new Observable<null>(observer => {
-      this.http.get(`${this.appSettingsService.getValue(AppSettings.apiAuth)}/api/v1/users/resetPassword/${userId}`);
+      this.http.get(`${this.appSettingsService.getValue(AppSettings.apiHome)}/api/v1/users/resetPassword/${userId}`);
     }).pipe(timeout(30000));
   }
 
 
   public getUser(userId: string): Observable<IUserModel> {
     return new Observable<IUserModel>(observer => {
-      this.http.get(`${this.appSettingsService.getValue(AppSettings.apiAuth)}/api/v1/users/${userId}`);
+      this.http.get(`${this.appSettingsService.getValue(AppSettings.apiHome)}/api/v1/users/${userId}`);
     }).pipe(timeout(30000));
   }
 
   public saveUser(user: IUserModel): Observable<any> {
     return new Observable<IUserModel>(observer => {
-      this.http.post(`${this.appSettingsService.getValue(AppSettings.apiAuth)}/api/v1/users/`, user);
+      this.http.post(`${this.appSettingsService.getValue(AppSettings.apiHome)}/api/v1/users/`, user);
     }).pipe(timeout(30000));
   }
 }

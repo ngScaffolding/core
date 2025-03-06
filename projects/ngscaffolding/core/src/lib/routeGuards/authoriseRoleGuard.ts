@@ -1,12 +1,12 @@
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { Injectable } from '@angular/core';
-import { UserAuthenticationBase } from '../services/userAuthentication/UserAuthenticationBase';
+import { UserAuthenticationService } from '@ngscaffolding/core';
 
 
 @Injectable()
 export class AuthoriseRoleGuard  {
   constructor(
-    private authService: UserAuthenticationBase,
+    private authService: UserAuthenticationService,
   ) {}
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {

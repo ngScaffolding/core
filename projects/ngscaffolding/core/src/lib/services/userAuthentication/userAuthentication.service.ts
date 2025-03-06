@@ -1,16 +1,15 @@
-import { BehaviorSubject, Observable } from 'rxjs';
-import { timeout } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
+import { catchError, distinctUntilChanged, tap, timeout } from 'rxjs/operators';
 
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 
-import { AppSettingsService } from '../appSettings/appSettings.service';
-import { LoggingService } from '../logging/logging.service';
+import { AppSettingsService } from '@ngscaffolding/core';
+import { LoggingService } from '@ngscaffolding/core';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { UserAuthenticationBase } from './UserAuthenticationBase';
 import { Router } from '@angular/router';
-import { BasicUser } from '@ngscaffolding/models';
+import { BasicUser, PERSISTENCE_LAYER } from '@ngscaffolding/models';
 import { AppSettings } from '@ngscaffolding/models';
 import { BaseEntity } from '@ngscaffolding/models';
 import { BaseStateService } from '../base-state.service';
@@ -23,16 +22,19 @@ export interface AuthenticationState {
 }
 
 @Injectable({ providedIn: 'root' })
-export class UserAuthenticationService
-  extends BaseStateService<AuthenticationState>
-  implements UserAuthenticationBase
-{
-  private authenticatedUpdated = new BehaviorSubject<boolean>(false);
+export class UserAuthenticationService extends BaseStateService<AuthenticationState> {
+  protected authenticatedUpdated = new BehaviorSubject<boolean>(false);
+
   public authenticated$ = this.authenticatedUpdated.asObservable();
+  public currentUser$ = new BehaviorSubject<BasicUser>({});
 
   private readonly tokenStorageKey = 'USER_TOKEN';
-
   private jwtHelper: JwtHelperService;
+
+  private accessToken = '';
+  private savedLogonResponse: any;
+
+  private preferencesLocal = inject(PERSISTENCE_LAYER);
 
   constructor(
     private logger: LoggingService,
@@ -40,10 +42,27 @@ export class UserAuthenticationService
     private appSettingsService: AppSettingsService,
     private router: Router
   ) {
-    super({ authenticated: false, token: null, userDetails: null });
+    super({ authenticated: false, token: '', userDetails: {} });
     logger.info('UserAuthorisationService - Constructor');
     this.jwtHelper = new JwtHelperService({});
+
     this.loadUserTokenFromStorage();
+
+    this.stateUpdated$
+      .pipe(
+        tap((state) => {
+          if (state.authenticated) {
+            this.currentUser$.next(state.userDetails);
+          }
+          this.authenticatedUpdated.next(state.authenticated);
+        }),
+        distinctUntilChanged()
+      )
+      .subscribe();
+  }
+
+  getUserId(): string {
+    return this.getState()?.userDetails?.userId || '';
   }
 
   filterItemsByRole(authItems: BaseEntity[]): Array<BaseEntity> {
@@ -72,11 +91,13 @@ export class UserAuthenticationService
 
     if (user.role) {
       user.role.forEach((role) => {
-        authItem.roles.forEach((authRole) => {
-          if (role === authRole) {
-            isAllowed = true;
-          }
-        });
+        if (authItem.roles) {
+          authItem.roles.forEach((authRole) => {
+            if (role === authRole) {
+              isAllowed = true;
+            }
+          });
+        }
       });
     }
     return isAllowed;
@@ -95,7 +116,7 @@ export class UserAuthenticationService
   }
 
   forceLogon(returnUrl: string) {
-    this.logoff();
+    this.logoff(true);
     this.router.navigate(['login'], { queryParams: { returnUrl } });
   }
 
@@ -103,102 +124,198 @@ export class UserAuthenticationService
     return this.getState()?.token;
   }
 
+  checkMfaCode(userName: string, code: string): Observable<any> {
+    let body = { userId: userName, code: code };
+
+    return this.http
+      .post<any>(
+        this.appSettingsService.getValue(AppSettings.apiHome) +
+          '/api/mfa/checkMfaCode',
+        body
+      )
+      .pipe(
+        timeout(30000),
+        tap((apiResponse) => {
+          // Save Token in Storage if needed
+          if (
+            this.appSettingsService.getValue(AppSettings.authSaveinLocalStorage)
+          ) {
+            localStorage.setItem(this.tokenStorageKey, this.accessToken);
+          }
+
+          // Load our details from this token
+          this.setToken(this.accessToken);
+        }),
+        catchError((err) => {
+          return of(new Error('Invalid Code'));
+        })
+      );
+  }
+
+  request2faCode(userName: string, password: string): Observable<any> {
+    return this.callLogonAPI(userName + '||mfa', password, true);
+  }
+
+  private callLogonAPI(
+    userName: string,
+    password: string,
+    mfa: boolean = false
+  ): Observable<any> {
+    let body = new HttpParams();
+    body = body
+      .append('username', userName)
+      .append('password', password)
+      .append('grant_type', 'password')
+      .append(
+        'client_id',
+        this.appSettingsService.getValue(AppSettings.authClientId)
+      )
+      .append(
+        'client_secret',
+        this.appSettingsService.getValue(AppSettings.authClientSecret)
+      )
+      .append(
+        'scope',
+        this.appSettingsService.getValue(AppSettings.authScope) +
+          ' offline_access openid'
+      )
+      .append('mfa', mfa ? 'true' : 'false');
+
+    return this.http
+      .post<any>(
+        this.appSettingsService.getValue(AppSettings.apiHome) +
+          this.appSettingsService.getValue(AppSettings.authTokenEndpoint),
+        body,
+        {
+          headers: new HttpHeaders().set(
+            'Content-Type',
+            'application/x-www-form-urlencoded'
+          ),
+        }
+      )
+      .pipe(
+        timeout(30000),
+        tap((apiResponse) => {
+          // check if user is is in 'user' role
+          const tokenDetails = this.jwtHelper.decodeToken(
+            apiResponse['access_token']
+          );
+          const requiredRole = this.appSettingsService.getValue(
+            AppSettings.authRequiredRole
+          );
+          if (tokenDetails['role']) {
+            if (requiredRole && !tokenDetails['role'].includes(requiredRole)) {
+              this.authenticatedUpdated.next(false);
+              throwError(() => new Error('Unauthorised'));
+            } else {
+              this.accessToken = apiResponse['access_token'];
+            }
+          }
+        })
+      );
+  }
+
+  validateMfaCode(userName: string, code: string): Observable<any> {
+    let body = { userId: userName, code: code };
+
+    return this.http
+      .post<any>(
+        this.appSettingsService.getValue(AppSettings.apiHome) + '/checkMfaCode',
+        body,
+        {
+          headers: new HttpHeaders().set(
+            'Content-Type',
+            'application/x-www-form-urlencoded'
+          ),
+        }
+      )
+      .pipe(
+        timeout(30000),
+        tap((validationResponse) => {
+          this.processTokenResponse(this.savedLogonResponse);
+        }),
+        catchError((err) => {
+          this.authenticatedUpdated.next(false);
+          return err;
+        })
+      );
+  }
+
   logon(userName: string, password: string): Observable<null> {
     return new Observable<null>((observer) => {
-      let body = new HttpParams();
-      body = body
-        .append('username', userName)
-        .append('password', password)
-        .append('grant_type', 'password')
-        .append(
-          'client_id',
-          this.appSettingsService.getValue(AppSettings.authClientId)
-        )
-        .append(
-          'client_secret',
-          this.appSettingsService.getValue(AppSettings.authClientSecret)
-        )
-        .append(
-          'scope',
-          this.appSettingsService.getValue(AppSettings.authScope) +
-            ' offline_access openid'
-        );
-
-      this.http
-        .post(
-          this.appSettingsService.getValue(AppSettings.apiAuth) +
-            this.appSettingsService.getValue(AppSettings.authTokenEndpoint),
-          body,
-          {
-            headers: new HttpHeaders().set(
-              'Content-Type',
-              'application/x-www-form-urlencoded'
-            ),
-          }
-        )
-        .pipe(timeout(30000))
-        .subscribe(
-          (response) => {
-            // chek if user is is in 'user' role
-            const tokenDetails = this.jwtHelper.decodeToken(
-              response['access_token']
-            );
-            const requiredRole = this.appSettingsService.getValue(
-              AppSettings.authRequiredRole
-            );
-            if (tokenDetails['role']) {
-              if (
-                requiredRole &&
-                !tokenDetails['role'].includes(requiredRole)
-              ) {
-                observer.error('Unauthorised');
+      this.callLogonAPI(userName, password).subscribe(
+        (apiResponse) => {
+          // check if user is is in 'user' role
+          const tokenDetails = this.jwtHelper.decodeToken(
+            apiResponse['access_token']
+          );
+          const requiredRole = this.appSettingsService.getValue(
+            AppSettings.authRequiredRole
+          );
+          if (tokenDetails['role']) {
+            if (requiredRole && !tokenDetails['role'].includes(requiredRole)) {
+              this.authenticatedUpdated.next(false);
+              observer.error('Unauthorised');
+            } else {
+              if (!userName.endsWith('||mfa')) {
+                this.processTokenResponse(apiResponse);
               } else {
-                // Save Token in Storage if needed
-                if (
-                  this.appSettingsService.getValue(
-                    AppSettings.authSaveinLocalStorage
-                  )
-                ) {
-                  localStorage.setItem(
-                    this.tokenStorageKey,
-                    response['access_token']
-                  );
-                }
-
-                // Load our details from this token
-                this.setToken(response['access_token']);
-
-                if (response['refresh_token']) {
-                  // this.refreshToken = response['refresh_token'];
-                }
-
-                observer.next(null);
-                observer.complete();
+                this.savedLogonResponse = apiResponse;
               }
+              observer.next(null);
+              observer.complete();
             }
-          },
-          (err) => {
-            observer.error(err);
           }
-        );
+        },
+        (err) => {
+          this.authenticatedUpdated.next(false);
+          observer.error(err);
+        }
+      );
     });
   }
 
-  logoff(): void {
+  private processTokenResponse(apiResponse: any) {
+    // Save Token in Storage if needed
+    if (this.appSettingsService.getValue(AppSettings.authSaveinLocalStorage)) {
+      localStorage.setItem(this.tokenStorageKey, apiResponse['access_token']);
+    }
+
+    // Load our details from this token
+    this.setToken(apiResponse['access_token']);
+
+    if (apiResponse['refresh_token']) {
+      // this.refreshToken = response['refresh_token'];
+    }
+
+    this.authenticatedUpdated.next(true);
+  }
+
+  logoff(bypassResetStores = false): void {
     if (this.appSettingsService.getValue(AppSettings.authSaveinLocalStorage)) {
       // Remove token from Local Storage
       localStorage.removeItem(this.tokenStorageKey);
     }
 
-    // Clear Akita Stores
-    resetStores({ exclude: ['appSettings'] });
+    if (!bypassResetStores) {
+      this.resetStores();
+    }
 
     this.setState({
-      token: null,
-      userDetails: null,
+      token: '',
+      userDetails: {},
       authenticated: false,
     });
+
     this.authenticatedUpdated.next(false);
+    setTimeout(() => {
+      this.router.navigateByUrl('/login');
+    }, 100);
+  }
+
+  private async resetStores() {
+    localStorage.clear();
+    await this.preferencesLocal.clear();
   }
 
   private loadUserTokenFromStorage() {

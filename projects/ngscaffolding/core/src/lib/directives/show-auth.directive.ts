@@ -7,17 +7,20 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { UserAuthenticationService } from '../services/userAuthentication/userAuthentication.service';
+import { UserAuthenticationService } from '@ngscaffolding/core';
 
 // eslint-disable-next-line @angular-eslint/directive-selector
-@Directive({ selector: '[ngsShowAuth]' })
+@Directive({
+    selector: '[ngsShowAuth]',
+    standalone: true
+})
 export class ShowAuthDirective implements AfterViewInit, OnDestroy {
-  private authSub: Subscription;
-  private initialDisplay: string;
+  private authSub: Subscription | undefined;
+  private initialDisplay = '';
 
   constructor(
     private el: ElementRef,
-    private authQuery: UserAuthenticationService
+    private authService: UserAuthenticationService
   ) {}
 
   ngOnDestroy(): void {
@@ -29,7 +32,7 @@ export class ShowAuthDirective implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.initialDisplay = this.el.nativeElement.style.display;
 
-    this.authSub = this.authQuery.authenticated$.subscribe((auth) => {
+    this.authSub = this.authService.authenticated$.subscribe((auth) => {
       if (auth) {
         this.el.nativeElement.style.display = this.initialDisplay;
       } else {

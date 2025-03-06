@@ -1,17 +1,17 @@
-import { RolesService } from '../rolesService/roles.service';
+import { RolesService } from '@ngscaffolding/core';
 import { Injectable } from '@angular/core';
 import { Route } from '@angular/router';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { timeout, finalize } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 
-import { LoggingService } from '../logging/logging.service';
+import { LoggingService } from '@ngscaffolding/core';
 
 import { AppSettings } from '@ngscaffolding/models';
 import { CoreMenuItem, MenuTypes } from '@ngscaffolding/models';
-import { UserAuthenticationService } from '../userAuthentication/userAuthentication.service';
-import { AppSettingsService } from '../appSettings/appSettings.service';
-import { BaseStateService } from '../base-state.service';
+import { UserAuthenticationService } from '@ngscaffolding/core';
+import { AppSettingsService } from '@ngscaffolding/core';
+import { BaseStateService } from '@ngscaffolding/core';
 
 export interface MenuState {
   menuItems?: CoreMenuItem[];
@@ -24,15 +24,18 @@ export interface MenuState {
   providedIn: 'root',
 })
 export class MenuService extends BaseStateService<MenuState> {
+  public quickItems$: Observable<CoreMenuItem[] | undefined>;
+  public addItems$: Observable<CoreMenuItem[] | undefined>;
+
   routeSubject = new BehaviorSubject<Array<Route>>([]);
 
   private readonly methodName = 'MenuService';
-  private masterListMenu: Array<CoreMenuItem> = [];
   private routes: Array<Route> = [];
 
   private menuItems: CoreMenuItem[] = [];
+  private allMenuItems: CoreMenuItem[] = [];
 
-  private apiHome: string;
+  private apiHome: string = '';
 
   private httpInFlight = false;
   private lockCount = 0;
@@ -55,36 +58,56 @@ export class MenuService extends BaseStateService<MenuState> {
     // Wait for settings, then load from server
     combineLatest([
       this.authService.authenticated$,
-      this.appSettingsService.select(AppSettings.apiHome),
-      this.appSettingsService.select(AppSettings.isMobile),
+      this.appSettingsService.selectByName(AppSettings.apiHome),
+      this.appSettingsService.selectByName(AppSettings.isMobile),
     ]).subscribe(([authenticated, apiHome, isMobile]) => {
-      if (authenticated && apiHome && isMobile && !this.menuDownloaded) {
-        this.apiHome = apiHome.value;
+      if (authenticated && apiHome && !this.menuDownloaded) {
+        this.apiHome = apiHome;
         if (!this.httpInFlight) {
-          this.downloadMenuItems(isMobile.value || false);
+          this.downloadMenuItems(isMobile || false);
         }
       } else if (!authenticated) {
         this.menuDownloaded = false;
         this.lockCount = 0;
       }
     });
+
+    this.addItems$ = this.select((state) => state.addItems);
+    this.quickItems$ = this.select((state) => state.quickItems);
   }
 
   public addMenuItemsFromCode(
     menuItems: CoreMenuItem[],
-    roles: string[] = null
+    roles: string[] = []
   ): void {
-    this.addLock();
-    this.log.info('Adding MenuItems menuItems', this.methodName, menuItems);
+    // this.addLock();
+    this.log.info('Adding MenuItems', this.methodName, menuItems);
 
     // Wait till user authorised
-    this.authService.authenticated$.subscribe((authorised) => {
-      if (authorised) {
+    // this.authService.authenticated$.subscribe((authorised) => {
+    //   if (authorised) {
         // Save for later use
         this.addMenuItems(menuItems);
-        this.removeLock();
-      }
-    });
+    //     this.removeLock();
+    //   }
+    // });
+  }
+
+  public override getEntity(key: string): any {
+    if (
+      this.state &&
+      this.state.referenceMenuItems &&
+      this.state.referenceMenuItems?.length > 0
+    ) {
+      const ret = this.state.referenceMenuItems?.find(
+        (entity) => entity.name === key
+      );
+      return this.state.referenceMenuItems?.find(
+        (entity) => entity.name === key
+      );
+    } else {
+      return null;
+    }
   }
 
   public getFolders(): CoreMenuItem[] {
@@ -98,12 +121,14 @@ export class MenuService extends BaseStateService<MenuState> {
     );
   }
 
-  public addRoute(route: Route, roles: string[] = null): void {
+  public reset(): void {}
+
+  public addRoute(route: Route, roles: string[] = []): void {
     this.log.info(`Adding Route ${JSON.stringify(route)}`);
     this.routes.push(route);
 
     if (roles !== null) {
-      this.rolesService.addRouteRoles(route.path, roles);
+      this.rolesService.addRouteRoles(route.path || '', roles);
     }
   }
 
@@ -119,7 +144,7 @@ export class MenuService extends BaseStateService<MenuState> {
         `${this.apiHome}/api/v1/menuitems?mobile=${isMobile}`
       )
       .pipe(
-        timeout(60000),
+        timeout(120000),
         finalize(() => {
           this.httpInFlight = false;
           this.removeLock();
@@ -164,7 +189,7 @@ export class MenuService extends BaseStateService<MenuState> {
     // Remove the unatuhorised
     this.menuItems = this.removeUnauthorisedMenuItems(this.menuItems);
 
-    this.setState({ menuItems: this.menuItems });
+    this.updateState({ menuItems: this.menuItems });
   }
 
   private calculateRouterLinks(menuItems: CoreMenuItem[]): void {
@@ -224,7 +249,7 @@ export class MenuService extends BaseStateService<MenuState> {
       // Add to Entity Store
       const existing = this.getState().referenceMenuItems || [];
       existing.push(menuItem);
-      this.updateState({referenceMenuItems: existing});
+      this.updateState({ referenceMenuItems: existing });
       if (menuItem.items && Array.isArray(menuItem.items)) {
         this.addMenuItemsToReferenceList(menuItem.items as Array<CoreMenuItem>);
       }
@@ -237,7 +262,7 @@ export class MenuService extends BaseStateService<MenuState> {
     const user = this.authService.getState();
     let userRoles: string[] = [];
     if (user && user.userDetails) {
-      userRoles = user.userDetails.role;
+      userRoles = user.userDetails.role || [];
     }
 
     const removingMenus: string[] = [];
@@ -247,7 +272,7 @@ export class MenuService extends BaseStateService<MenuState> {
       let removingThis = false;
 
       // makes sure roles is array
-      let checkingRoles = [];
+      let checkingRoles: string[] = [];
 
       if (!menuItem.roles) {
         checkingRoles = [];
@@ -267,7 +292,7 @@ export class MenuService extends BaseStateService<MenuState> {
         ) {
           // No Authority. Remove
           removingThis = true;
-          removingMenus.push(menuItem.name);
+          removingMenus.push(menuItem.name || '');
         }
       }
 

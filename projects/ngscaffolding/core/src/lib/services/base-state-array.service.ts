@@ -1,52 +1,101 @@
-import { BehaviorSubject } from 'rxjs';
+import { inject } from '@angular/core';
+import { PERSISTENCE_LAYER } from '@ngscaffolding/models';
+import { BehaviorSubject, Observable, distinctUntilChanged, map } from 'rxjs';
 
 export class BaseStateArrayService<T> {
-  protected state: T[];
-  protected stateUpdated = new BehaviorSubject<T[]>(null);
-  protected activeUpdated = new BehaviorSubject<T>(null);
+  protected state!: T[];
 
+  protected stateUpdated: BehaviorSubject<T[]>;
+  protected activeUpdated = new BehaviorSubject<T | null>(null);
   protected loadingUpdated = new BehaviorSubject<boolean>(false);
 
-  public stateUpdated$ = this.stateUpdated.asObservable();
-  public loading$ = this.stateUpdated.asObservable();
-  public active$ = this.stateUpdated.asObservable();
+  public stateUpdated$: Observable<T[]>;
+  public loading$ = this.loadingUpdated.asObservable();
+  public active$ = this.activeUpdated.asObservable();
 
-  constructor(state: T[], private key: string) {
-    this.state = state;
+  private activeKey = '';
+  private isSaveToPreferences = false;
+
+  private preferences = inject(PERSISTENCE_LAYER);
+
+  constructor(
+    state: T[],
+    private key: string,
+    private stateName: string,
+    private saveToPreferences = false
+  ) {
+    this.stateUpdated = new BehaviorSubject<T[]>(state);
+    this.stateUpdated$ = this.stateUpdated.asObservable();
+
+    if (this.saveToPreferences) {
+      this.setAllState(state, true);
+      this.loadState();
+    } else {
+      this.setAllState(state, true);
+    }
+    this.isSaveToPreferences = saveToPreferences;
   }
 
-  public getEntity(key: string): T {
-    if (this.state?.length > 0) {
-      return this.state.find((searchItem) => searchItem[this.key] === key);
+  public getEntity(key: string): T | undefined {
+    if (this.state && this.state?.length > 0) {
+      const foundValue = this.state.find(
+        (searchItem) => (searchItem as any)[this.key] === key
+      );
+      return foundValue || undefined;
     }
-    return null;
+    return undefined;
   }
 
   public hasEntity(key: string): boolean {
-    if (this.state?.length > 0) {
-      return this.state.some((searchItem) => searchItem[this.key] === key);
+    if (this.state && this.state?.length > 0) {
+      return this.state.some(
+        (searchItem) => (searchItem as any)[this.key] === key
+      );
     }
     return false;
   }
 
+  public selectEntity(key: string): Observable<void | T> {
+    return this.stateUpdated$.pipe(
+      map((state) => {
+        const foundValue = this.state.find(
+          (searchItem) => (searchItem as any)[this.key] === key
+        );
+        if (!foundValue) {
+          return undefined;
+        }
+        return foundValue;
+      }),
+      distinctUntilChanged()
+    );
+  }
+
   public setState(state: T) {
-    let existing = this.findValue(state[this.key]);
-    if (!!existing) {
-      existing = state;
+    const existingIndex = this.findIndex((state as any)[this.key]);
+    if (existingIndex > -1) {
+      this.state[existingIndex] = state;
     } else {
       this.state.push(state);
     }
     this.stateUpdated.next(this.state);
+
+    if (this.isSaveToPreferences) {
+      this.saveState();
+    }
   }
 
-  public setAllState(allState: T[]) {
-    this.resetState();
+  public setAllState(allState: T[], bypassSave = false) {
+    this.state = [] as T[];
 
     allState.forEach((state) => {
       this.state.push(state);
+    });
 
       this.stateUpdated.next(this.state);
-    });
+
+    if (!bypassSave && this.isSaveToPreferences) {
+      this.saveState();
+    }
   }
 
   public getAll() {
@@ -56,45 +105,122 @@ export class BaseStateArrayService<T> {
   public setActive(key: string) {
     const existing = this.findValue(key);
     if (!!existing) {
+      this.activeKey = key;
       this.activeUpdated.next(existing);
+
+      //this.updateState(existing);
+      if (this.isSaveToPreferences) {
+        this.saveState();
+      }
+    }
+  }
+
+  public updateActive(state: Partial<T>) {
+    let existing = this.findValue(this.activeKey);
+    if (!!existing) {
+      existing = { ...existing, ...state };
+      this.activeUpdated.next(existing);
+      this.updateState(existing);
     }
   }
 
   public resetState() {
-    this.state = [] as T[];
+    this.setAllState([]);
+  }
+
+  public selectLoading() {
+    return this.loadingUpdated.asObservable();
   }
 
   public remove(key: string) {
     const existing = this.findValue(key);
     if (!!existing) {
-      this.state = this.state.filter((item) => item[this.key] !== key);
+      this.state = this.state.filter((item) => (item as any)[this.key] !== key);
       this.stateUpdated.next(this.state);
+      this.saveState();
     }
   }
 
-  public updateState(state: Partial<T>) {
-    let existing = this.findValue(state[this.key]);
-    if (!!existing) {
-      existing = { ...existing, ...state };
+  public updateState(newState: Partial<T>) {
+    let updatedState = this.state;
+    if (
+      this.state.find(
+        (item) =>
+          (item as any)[this.key]?.toString()?.toUpperCase() ===
+          (newState as Record<string, any>)[this.key]?.toString()?.toUpperCase()
+      ) === undefined
+    ) {
+      updatedState.push(newState as T);
     } else {
-      this.state.push(state as T);
+      updatedState = this.state.map((item) => {
+        if (
+          (item as Record<string, any>)[this.key]?.toString()?.toUpperCase() ===
+          (newState as Record<string, any>)[this.key]?.toString()?.toUpperCase()
+        ) {
+          return { ...item, ...newState };
+    } else {
+          return item;
     }
+      });
+    }
+
+    this.state = updatedState;
+
     this.stateUpdated.next(this.state);
+    if (this.isSaveToPreferences) {
+      this.saveState();
+    }
   }
 
   protected setLoading(loading: boolean) {
     this.loadingUpdated.next(loading);
   }
 
-  private loadState() {
-    localStorage.getItem('state' + this.constructor.name);
+  private saveState() {
+    if (this.saveToPreferences) {
+      this.preferences.set({
+        key: this.stateName,
+        value: JSON.stringify(this.state),
+      });
+      this.preferences.set({
+        key: this.stateName + ':active:',
+        value: JSON.stringify(this.activeKey),
+      });
+    }
+  }
+
+  private async loadState() {
+    const { value } = await this.preferences.get({ key: this.stateName });
+    if (!!value && value !== 'undefined') {
+      const parsedState = JSON.parse(value);
+      if (parsedState) {
+        this.state = JSON.parse(value);
+        this.stateUpdated.next(this.state);
+      }
+    }
+    const localActive = (await (this.preferences.get({key:this.stateName + ':active:'}))).value;
+    if (!!localActive && localActive !== 'undefined') {
+      const parsedActive = JSON.parse(localActive);
+      if (parsedActive) {
+        this.activeKey = parsedActive[this.key];
+        this.activeUpdated.next(parsedActive);
+      }
+    }
   }
 
   private findValue(key: string): T {
-    return this.state.find((searchItem) => searchItem[this.key] === key);
+    const foundValue = this.state.find(
+      (searchItem) => (searchItem as any)[this.key] === key
+    );
+    if (!foundValue) {
+      return undefined;
+    }
+    return foundValue;
   }
 
-  public selectLoading() {
-    return this.loadingUpdated.asObservable();
+  private findIndex(key: string): number {
+    return this.state.findIndex(
+      (searchItem) => (searchItem as any)[this.key] === key
+    );
   }
 }

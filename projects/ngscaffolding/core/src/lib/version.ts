@@ -1,6 +1,6 @@
 // IMPORTANT: THIS FILE IS AUTO GENERATED! DO NOT MANUALLY EDIT OR CHECKIN!
 /* eslint-disable */
-export const VERSION = {
+export const VERSION: any = {
     "dirty": true,
     "raw": "608f2a0-dirty",
     "hash": "608f2a0",

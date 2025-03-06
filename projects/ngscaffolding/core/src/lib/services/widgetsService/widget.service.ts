@@ -1,16 +1,16 @@
-import { RolesService } from '../rolesService/roles.service';
+import { RolesService } from '@ngscaffolding/core';
 import { Injectable } from '@angular/core';
 import { combineLatest } from 'rxjs';
 import { finalize, take } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 
-import { LoggingService } from '../logging/logging.service';
+import { LoggingService } from '@ngscaffolding/core';
 
 import { AppSettings } from '@ngscaffolding/models';
 import { WidgetModelBase } from '@ngscaffolding/models';
 import { BaseStateArrayService } from '../base-state-array.service';
-import { AppSettingsService } from '../appSettings/appSettings.service';
-import { UserAuthenticationService } from '../userAuthentication/userAuthentication.service';
+import { AppSettingsService } from '@ngscaffolding/core';
+import { UserAuthenticationService } from '@ngscaffolding/core';
 
 
 @Injectable({
@@ -19,23 +19,23 @@ import { UserAuthenticationService } from '../userAuthentication/userAuthenticat
 export class WidgetService extends BaseStateArrayService<WidgetModelBase> {
   private className = 'core.WidgetService';
 
-  private apiHome: string;
+  private apiHome = '';
 
   constructor(
     private http: HttpClient,
 
-    private appSettingsQuery: AppSettingsService,
-    private authQuery: UserAuthenticationService,
+    private AppSettingsService: AppSettingsService,
+    private authService: UserAuthenticationService,
     private log: LoggingService,
     public rolesService: RolesService
   ) {
-    super([], 'name');
+    super([], 'name','Widget');
 
     // First Time load away
     this.setLoading(false);
 
     // Wait for settings, then load from server
-    combineLatest(this.authQuery.authenticated$, this.appSettingsQuery.getValue(AppSettings.apiHome))
+    combineLatest(this.authService.authenticated$, this.AppSettingsService.getValue(AppSettings.apiHome))
       .subscribe(([authenticated, apiHome]) => {
         if (authenticated && apiHome) {
           this.apiHome = apiHome.toString();

@@ -2,16 +2,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, combineLatest } from 'rxjs';
 
-import { AppSettingsService } from '../appSettings/appSettings.service';
+import { AppSettingsService } from '@ngscaffolding/core';
 
 // Models
-import { LoggingService } from '../logging/logging.service';
+import { LoggingService } from '@ngscaffolding/core';
 import { AppSettings } from '@ngscaffolding/models';
 import {
   UserPreferenceValue,
   UserPreferenceDefinition,
 } from '@ngscaffolding/models';
-import { UserAuthenticationService } from '../userAuthentication/userAuthentication.service';
+import { UserAuthenticationService } from '@ngscaffolding/core';
 import { BaseStateArrayService } from '../base-state-array.service';
 
 @Injectable({
@@ -22,7 +22,6 @@ export class UserPreferencesService extends BaseStateArrayService<UserPreference
   private readonly prefix = 'preference_';
   private readonly storageKey = 'UserPreferences';
 
-  private apiHome: string;
   private valuesDownloaded = false;
   private definitionsDownloaded = false;
   private httpInFlight = 0;
@@ -31,22 +30,23 @@ export class UserPreferencesService extends BaseStateArrayService<UserPreference
     private http: HttpClient,
     private logger: LoggingService,
     private userAuthService: UserAuthenticationService,
-    private userPrefsService: UserPreferencesService,
     private appSettingsService: AppSettingsService
   ) {
-    super([], 'name');
+    super([], 'name','Prefs', true);
+    this.setLoading(true);
     // Wait for settings, then load from server
     combineLatest([
       this.userAuthService.authenticated$,
-      this.appSettingsService.select(AppSettings.apiHome),
-    ]).subscribe(([authenticated, apiHome]) => {
+      this.appSettingsService.selectByName(AppSettings.apiHome)
+    ])
+    .subscribe(([authenticated, apiHome]) => {
       if (
         authenticated &&
         apiHome &&
         !this.valuesDownloaded &&
         !this.definitionsDownloaded
       ) {
-        this.apiHome = apiHome;
+
         if (!this.httpInFlight) {
           // Load User Prefs from Localstorage
           this.loadFromLocal();
@@ -75,7 +75,7 @@ export class UserPreferencesService extends BaseStateArrayService<UserPreference
         .subscribe(
           () => {
             // Remove and tell the world
-            this.userPrefsService.remove(name);
+            this.remove(name);
 
             localStorage.removeItem(this.storageKey);
             this.saveToLocal();
@@ -103,14 +103,16 @@ export class UserPreferencesService extends BaseStateArrayService<UserPreference
         (prefValues) => {
           if (prefValues) {
             prefValues.forEach((prefValue) => {
-              this.userPrefsService.setState(prefValue);
+              this.setState(prefValue);
             });
-            this.userPrefsService.setLoading(false);
+
             this.httpInFlight--;
             this.valuesDownloaded = true;
           }
+          this.setLoading(false);
         },
         (err) => {
+          this.setLoading(false);
           this.httpInFlight--;
           this.logger.error(err, this.className, true);
         }
@@ -128,8 +130,8 @@ export class UserPreferencesService extends BaseStateArrayService<UserPreference
         )
         .subscribe(
           () => {
-            const existingEntity = this.userPrefsService.getEntity(key);
-            let newEntity: UserPreferenceValue = { userId: '', value: null };
+            const existingEntity = this.getEntity(key);
+            let newEntity: UserPreferenceValue = { userId: '', value: undefined };
 
             if (existingEntity) {
               newEntity = JSON.parse(JSON.stringify(existingEntity));
@@ -139,7 +141,7 @@ export class UserPreferencesService extends BaseStateArrayService<UserPreference
             }
 
             newEntity.value = value;
-            this.userPrefsService.setState(newEntity);
+            this.setState(newEntity);
 
             observer.next();
             observer.complete();
@@ -162,7 +164,7 @@ export class UserPreferencesService extends BaseStateArrayService<UserPreference
       .subscribe(
         (prefDefinitions) => {
           if (prefDefinitions && prefDefinitions.length > 0) {
-            const defns = [];
+            const defns: UserPreferenceValue[] = [];
             prefDefinitions.forEach((definition) => {
               defns.push(definition);
             });
@@ -197,7 +199,7 @@ export class UserPreferencesService extends BaseStateArrayService<UserPreference
   }
 
   private clearValues() {
-    this.userPrefsService.resetState();
+    this.resetState();
 
     // Save to LocalStorage
     localStorage.removeItem(this.storageKey);

@@ -3,19 +3,18 @@ import { Injectable } from '@angular/core';
 import { combineLatest } from 'rxjs';
 import { take, finalize } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
-import { DataSourceService } from '../dataSource/dataSource.service';
+import { DataSourceService } from '@ngscaffolding/core';
 import { AppSettings, Role } from '@ngscaffolding/models';
 import { SystemDataSourceNames } from '@ngscaffolding/models';
-import { BaseStateArrayService } from '../base-state-array.service';
-import { UserAuthenticationService } from '../userAuthentication/userAuthentication.service';
-import { AppSettingsService } from '../appSettings/appSettings.service';
+import { BaseStateArrayService } from '@ngscaffolding/core';
+import { UserAuthenticationService } from '@ngscaffolding/core';
+import { AppSettingsService } from '@ngscaffolding/core';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RolesService extends BaseStateArrayService<Role> {
   private routeRoles = new Map<string, string[]>();
-  private apiHome: string;
 
   constructor(
     private http: HttpClient,
@@ -23,15 +22,14 @@ export class RolesService extends BaseStateArrayService<Role> {
     public authService: UserAuthenticationService,
     public appSettingsService: AppSettingsService
   ) {
-    super([], 'name');
+    super([], 'name','Roles');
     // First Time load away
     this.setLoading(false);
 
     // Wait for settings, then load from server
-    combineLatest(this.authService.authenticated$, this.appSettingsService.getValue(AppSettings.apiHome))
+    combineLatest(this.authService.authenticated$, this.appSettingsService.selectByName(AppSettings.apiHome))
       .subscribe(([authenticated, apiHome]) => {
         if (authenticated && apiHome) {
-          this.apiHome = apiHome.toString()
           this.selectLoading()
             .pipe(take(1))
             .subscribe(loading => {
@@ -80,7 +78,7 @@ export class RolesService extends BaseStateArrayService<Role> {
     const currentUser = this.authService.getState().userDetails;
     if (currentUser && currentUser.role) {
       roles.forEach(role => {
-        if (currentUser.role.indexOf(role) > -1) {
+        if (currentUser.role && currentUser.role.indexOf(role) > -1) {
           result = true;
         }
       });
@@ -94,6 +92,6 @@ export class RolesService extends BaseStateArrayService<Role> {
   }
 
   public getRouteRoles(route: string): string[] {
-    return this.routeRoles.get(route);
+    return this.routeRoles.get(route) || [];
   }
 }

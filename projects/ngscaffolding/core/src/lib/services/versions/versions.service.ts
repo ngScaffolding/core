@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { LoggingService } from '../logging/logging.service';
+import { LoggingService } from '@ngscaffolding/core';
 
 export class SoftwareVersion {
-    module: string;
-    version: string;
-    isAppModule: boolean;
+    module = '';
+    version = '';
+    isAppModule = false;
 }
 
 @Injectable({
@@ -33,7 +33,7 @@ export class VersionsService {
         if (foundModule) {
             return foundModule.version;
         } else {
-            return null;
+            return '';
         }
     }
 }

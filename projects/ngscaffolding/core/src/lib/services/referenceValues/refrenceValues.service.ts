@@ -8,7 +8,7 @@ import { LoggingService } from '../logging/logging.service';
 import { timeout, retry, tap } from 'rxjs/operators';
 import { AppSettings } from '@ngscaffolding/models';
 import { ReferenceValue } from '@ngscaffolding/models';
-import { SocketService } from '../socket/socket.service';
+// import { SocketService } from '../socket/socket.service';
 import { BaseStateArrayService } from '../base-state-array.service';
 
 @Injectable({
@@ -22,13 +22,12 @@ export class ReferenceValuesService extends BaseStateArrayService<ReferenceValue
   constructor(
     private http: HttpClient,
     private appSettingsService: AppSettingsService,
-    private logger: LoggingService,
-    private socketService: SocketService
+    private logger: LoggingService // private socketService: SocketService
   ) {
-    super([], 'compositeKey');
-    socketService.cacheFlush$.subscribe((refValue) => {
-      this.clearReferenceValue(refValue, false);
-    });
+    super([], 'compositeKey','RefVal', true);
+    // socketService.cacheFlush$.subscribe((refValue) => {
+    //   this.clearReferenceValue(refValue, false);
+    // });
   }
 
   lookupValue(name: string, lookupValue: any): Observable<string> {
@@ -36,13 +35,18 @@ export class ReferenceValuesService extends BaseStateArrayService<ReferenceValue
       this.getReferenceValue(name)
         .pipe(
           tap((refVal) => {
-            const foundVal = refVal.referenceValueItems.find(
-              (val) => val.value == lookupValue
-            );
-            observer.next(
-              refVal.referenceValueItems.find((val) => val.value == lookupValue)
-                ?.display
-            );
+            if (refVal) {
+              const foundVal = refVal.referenceValueItems?.find(
+                (val) => val.value == lookupValue
+              );
+              observer.next(
+                refVal.referenceValueItems?.find(
+                  (val) => val.value == lookupValue
+                )?.display
+              );
+            } else {
+              observer.next(undefined);
+            }
             observer.complete();
           })
         )
@@ -59,7 +63,7 @@ export class ReferenceValuesService extends BaseStateArrayService<ReferenceValue
         if (reference) {
           observer.next(reference.value);
         } else {
-          observer.next(null);
+          observer.next(undefined);
         }
         observer.complete();
       });
@@ -80,18 +84,20 @@ export class ReferenceValuesService extends BaseStateArrayService<ReferenceValue
         entity?.name?.toLowerCase().includes(loopName.toLowerCase())
       );
 
-      if (notifyOthers) {
-        this.socketService.sendCacheClear(loopName);
-      }
+      // if (notifyOthers) {
+      //   this.socketService.sendCacheClear(loopName);
+      // }
 
       for (const refValue of list) {
-        this.remove(refValue.compositeKey);
+        if (refValue.compositeKey) {
+          this.remove(refValue.compositeKey);
+        }
       }
     }
   }
 
   setReferenceValue(referenceValue: ReferenceValue) {
-    referenceValue.compositeKey = this.getKey(referenceValue.name, '');
+    referenceValue.compositeKey = this.getKey(referenceValue.name || '', '');
     this.setState(referenceValue);
   }
 
@@ -102,7 +108,7 @@ export class ReferenceValuesService extends BaseStateArrayService<ReferenceValue
     name: string,
     seed = '',
     childDepth = 0
-  ): Observable<ReferenceValue> {
+  ): Observable<ReferenceValue | undefined> {
     if (this.hasEntity(this.getKey(name, seed))) {
       const cacheValue = this.getEntity(this.getKey(name, seed));
       if (this.isExpired(cacheValue)) {
@@ -112,41 +118,37 @@ export class ReferenceValuesService extends BaseStateArrayService<ReferenceValue
 
       // If we get one from Cache, thats handy to use
       this.logger.info(`Reference Values From Cache ${name}::${seed}`);
-      return new Observable<ReferenceValue>((observer) => {
-        observer.next(this.getEntity(this.getKey(name, seed)));
-        observer.complete();
-      });
+      return of(this.getEntity(this.getKey(name, seed)));
     } else if (childDepth > 0) {
       const refValue = this.getEntity(this.getKey(name, ''));
       if (refValue) {
-        const parentRef = refValue.referenceValueItems.find(
+        const parentRef = refValue.referenceValueItems?.find(
           (parent) => parent.value === seed
         );
         if (parentRef) {
           const clone = { ...refValue };
           clone.referenceValueItems = parentRef.referenceValueItems;
 
-          return new Observable<ReferenceValue>((observer) => {
-            observer.next(clone);
-            observer.complete();
-          });
+          return of(clone);
         }
       }
     } else {
       return this.downloadRefValue(name, seed);
     }
-    return of(null);
+    return of(undefined);
   }
 
   private downloadRefValue(
     name: string,
     seed: string
-  ): Observable<ReferenceValue> {
+  ): Observable<ReferenceValue | undefined> {
     // Nothing in the Cache
 
     if (this.requestsInFlight.has(this.getKey(name, seed))) {
       // We have already asked for this, return our existing Observable
-      return this.requestsInFlight.get(this.getKey(name, seed));
+      return this.requestsInFlight.get(this.getKey(name, seed)) as Observable<
+        ReferenceValue | undefined
+      >;
     } else {
       const wrapper = new Observable<ReferenceValue>((observer) => {
         // Call HTTP Here
@@ -175,9 +177,7 @@ export class ReferenceValuesService extends BaseStateArrayService<ReferenceValue
               this.logger.info(
                 `Reference Values From HTTP Failed using last Cache ${name}::${seed}`
               );
-              observer.next(
-                this.getEntity(this.getKey(name, seed))
-              );
+              observer.next(this.getEntity(this.getKey(name, seed)));
               observer.complete();
             } else {
               observer.error(err);
@@ -195,10 +195,15 @@ export class ReferenceValuesService extends BaseStateArrayService<ReferenceValue
     return `${name}::${seed}`;
   }
 
-  private isExpired(refVal: ReferenceValue): boolean {
+  private isExpired(refVal: ReferenceValue | undefined): boolean {
+    if (!refVal) {
+      return false;
+    }
     const cacheSeconds = refVal.cacheSeconds || 31556952; // Default to a year
     const nowDate = new Date();
-    const expires = new Date(refVal.whenStored);
+    const expires = refVal.whenStored
+      ? new Date(refVal.whenStored)
+      : new Date();
 
     expires.setSeconds(expires.getSeconds() + cacheSeconds);
     return nowDate > expires;

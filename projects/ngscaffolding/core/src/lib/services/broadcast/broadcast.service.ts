@@ -1,7 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable no-shadow */
 import { Injectable } from '@angular/core';
-
 import { Observable, Subject } from 'rxjs';
 import { map, filter } from 'rxjs/operators';
 

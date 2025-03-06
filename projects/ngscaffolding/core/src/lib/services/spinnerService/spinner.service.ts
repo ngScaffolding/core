@@ -11,7 +11,7 @@ import {
 export class SpinnerService {
   constructor(private broadcastService: BroadcastService) {}
 
-  public showSpinner(message: string = null) {
+  public showSpinner(message: string = '') {
     this.broadcastService.broadcast(BroadcastTypes.SHOW_SPINNER, message);
   }
 

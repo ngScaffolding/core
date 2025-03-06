@@ -8,7 +8,10 @@ import {
 import { LoggingService } from '../services/logging/logging.service';
 
 // eslint-disable-next-line @angular-eslint/directive-selector
-@Directive({ selector: '[ngsFillHeight]' })
+@Directive({
+    selector: '[ngsFillHeight]',
+    standalone: true
+})
 export class FillHeightDirective implements AfterViewInit {
   @Input() fixedHeight: number = 0;
   @Input() relativeToParentPercent = 0;
@@ -17,7 +20,7 @@ export class FillHeightDirective implements AfterViewInit {
   constructor(private el: ElementRef, private logger: LoggingService) { }
 
   @HostListener('window:resize', ['$event'])
-  onResize(event) {
+  onResize(event: any) {
     this.calculateAndSetElementHeight();
   }
 

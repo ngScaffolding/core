@@ -2,11 +2,12 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'dateAgo',
-  pure: true
+    pure: true,
+    standalone: true
 })
 export class DateAgoPipe implements PipeTransform {
-
   transform(value: any, args?: any): any {
+        try {
     if (value) {
       const seconds = Math.floor((+new Date() - +new Date(value)) / 1000);
       if (seconds < 29) {
@@ -24,7 +25,7 @@ export class DateAgoPipe implements PipeTransform {
       let counter;
       for (const i in intervals) {
         if (Object.prototype.hasOwnProperty.call(intervals, i)) {
-          counter = Math.floor(seconds / intervals[i]);
+          counter = Math.floor(seconds / (intervals as any)[i]);
           if (counter > 0) {
             if (counter === 1) {
               return counter + ' ' + i + ' ago'; // singular (1 day ago)
@@ -36,5 +37,9 @@ export class DateAgoPipe implements PipeTransform {
       }
     }
     return value;
+        } catch (e) {
+            console.error(e);
+            return '';
+        }
   }
 }

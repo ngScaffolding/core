@@ -11,26 +11,26 @@ import { AppSettings, AppSettingsValue } from '@ngscaffolding/models';
   providedIn: 'root',
 })
 export class AppSettingsService extends BaseStateService<AppSettingsValue> {
-
   private className = 'AppSettingsService';
 
   constructor(private logger: LoggingService, private http: HttpClient) {
     console.log('AppSettingsService Constructor');
-    super({ value: {} });
+    super({ value: {} }, true);
   }
 
   public setValue(name: string, value: any): void {
-    this.state[name] = value;
+    (this.state as any)[name] = value;
+    if (this.state) {
     this.stateUpdated.next(this.state);
-
+    }
     if (name === AppSettings.apiHome) {
       this.loadFromServer(value.toString());
     }
   }
 
   public getValue(name: string): any {
-    if (this.state[name]) {
-      return this.state[name];
+    if ((this.state as any)[name]) {
+      return (this.state as any)[name];
     }
   }
 
@@ -53,11 +53,15 @@ export class AppSettingsService extends BaseStateService<AppSettingsValue> {
   }
 
   public getBoolean(name: string): Observable<boolean> {
-    return this.stateUpdated$.pipe(map((state) => state[name] as boolean));
+    return this.stateUpdated$.pipe(
+      map((state) => (this.state as any)[name] as boolean)
+    );
   }
 
   public getString(name: string): Observable<string> {
-    return this.stateUpdated$.pipe(map((state) => state[name] as string));
+    return this.stateUpdated$.pipe(
+      map((state) => (this.state as any)[name] as string)
+    );
   }
 
   private loadFromServer(apiHome: string) {
@@ -72,7 +76,7 @@ export class AppSettingsService extends BaseStateService<AppSettingsValue> {
         (appValues) => {
           if (appValues) {
             appValues.forEach((appValue) => {
-              this.setValue(appValue.name, appValue.value);
+              this.setValue(appValue.name ?? '', appValue.value);
             });
           }
           this.setLoading(false);

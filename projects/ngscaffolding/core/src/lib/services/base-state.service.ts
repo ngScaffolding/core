@@ -1,69 +1,121 @@
+import { inject, Inject } from '@angular/core';
 import { BehaviorSubject, Observable, distinctUntilChanged, map } from 'rxjs';
+import { PERSISTENCE_LAYER } from '@ngscaffolding/models';
 
-export class BaseStateService<T> {
-  protected state: T;
-  protected stateUpdated = new BehaviorSubject<T>(null);
-  protected loadingUpdated = new BehaviorSubject<boolean>(false);
-  protected stateElementUpdated = new BehaviorSubject<[string, any]>([
-    null,
-    null,
-  ]);
+export class BaseStateService<T extends object> {
+    protected state: T | undefined;
+    protected stateUpdated: BehaviorSubject<T>;
+    protected loadingUpdated = new BehaviorSubject<boolean>(true);
+    protected stateElementUpdated = new BehaviorSubject<[string, any]>(['', null]);
 
-  public stateUpdated$ = this.stateUpdated.asObservable();
-  public loading$ = this.stateUpdated.asObservable();
+    public stateUpdated$: Observable<T>;
+    public loading$ = this.loadingUpdated.asObservable();
   public stateElementUpdated$ = this.stateElementUpdated.asObservable();
 
-  constructor(state: T, private saveToLocalStorage = false) {
-    if (this.saveToLocalStorage) {
+    private isSaveToPreferences = false;
+
+    private preferences = inject(PERSISTENCE_LAYER);
+
+    constructor(state: T, private saveToPreferences = false) {
+        this.stateUpdated = new BehaviorSubject<T>(state);
+        this.stateUpdated$ = this.stateUpdated.asObservable();
+
+        if (this.saveToPreferences) {
+            this.setState(state);
       this.loadState();
     } else {
       this.setState(state);
     }
+
+        this.isSaveToPreferences = saveToPreferences;
   }
 
-  public getState(): T {
-    return this.state;
-  }
+    public getState(): T {
+	    if (this.state === undefined) {
+	      throw new Error('State is undefined');
+	    }
+        return this.state;
+    }
 
   public setState(state: T) {
-    this.notifyChanges(state, this.state);
-    this.state = state;
+        //this.notifyChanges(state, this.state);
+        this.state = { ...state }; // New object reference
     this.stateUpdated.next(this.state);
+
+        if (this.isSaveToPreferences) {
+            this.saveState();
+        }
   }
 
-  public select(key: string): Observable<any> {
+    public selectByName(key: string): Observable<any> {
     return this.stateUpdated$.pipe(
-      map((state) => {
-        return state[key];
-      }),
-      distinctUntilChanged()
+      	map((state) => {
+                if (state.hasOwnProperty(key)) {
+                    return (state as any)[key];
+                } else {
+                    return null;
+                }
+            })
     );
   }
 
+    public hasEntity(key: string): boolean {
+        return !!(this.state as any)[key];
+    }
+
+    public getEntity(key: string): any {
+        return (this.state as any)[key];
+    }
+
+    public select<R>(project: (store: T) => R): Observable<R> {
+    return this.stateUpdated$.pipe(map((snapshot) => project(snapshot)));
+    }
+
   public resetState() {
     this.state = {} as T;
+        if (this.isSaveToPreferences) {
+            this.saveState();
+        }
   }
 
   public updateState(state: Partial<T>) {
+        if (this.state !== undefined) {
     this.notifyChanges(state, this.state);
-    this.state = { ...this.state, ...state };
+        }
+        this.state = { ...this.state, ...state } as T;
+        this.stateUpdated.next(this.state);
+
+        if (this.isSaveToPreferences) {
+            this.saveState();
+        }
   }
 
   protected setLoading(loading: boolean) {
     this.loadingUpdated.next(loading);
   }
 
-  private loadState() {
-    const local = localStorage.getItem('state' + this.constructor.name);
-    if (local) {
-      this.setState(JSON.parse(local));
+    private saveState() {
+        if (this.saveToPreferences) {
+            this.preferences.set({
+                key: 'state:' + this.constructor.name,
+                value: JSON.stringify(this.state)
+            });
+        }
+    }
+
+    private async loadState() {
+        const { value } = await this.preferences.get({
+            key: 'state' + this.constructor.name
+        });
+        if (value) {
+            this.setState(JSON.parse(value));
     }
   }
 
   private notifyChanges(newState: Partial<T>, oldState: T) {
-    Object.keys(newState).forEach((key) => {
-      if (newState[key] !== oldState[key]) {
-        this.stateElementUpdated.next([key, newState[key]]);
+        Object.keys(newState).forEach(key => {
+            if ((newState as any)[key] !== (oldState as any)[key]) {
+                this.stateElementUpdated.next([key, (newState as any)[key]]);
       }
     });
 

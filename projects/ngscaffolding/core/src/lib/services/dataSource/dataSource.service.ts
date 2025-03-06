@@ -3,14 +3,14 @@ import { retry, timeout } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
-import { AppSettingsService } from '../appSettings/appSettings.service';
-import { LoggingService } from '../logging/logging.service';
-import { AppAuditService } from '../appAudit/appAudit.service';
+import { AppSettingsService } from '@ngscaffolding/core';
+import { LoggingService } from '@ngscaffolding/core';
+import { AppAuditService } from '@ngscaffolding/core';
 import { ApplicationLog } from '@ngscaffolding/models';
 import { AppSettings } from '@ngscaffolding/models';
 import { DataSourceRequest } from '@ngscaffolding/models';
 import { DataResults } from '@ngscaffolding/models';
-import { BaseStateArrayService } from '../base-state-array.service';
+import { BaseStateArrayService } from '@ngscaffolding/core';
 
 @Injectable({
   providedIn: 'root',
@@ -25,7 +25,7 @@ export class DataSourceService extends BaseStateArrayService<DataResults>{
     private appAuditService: AppAuditService,
     private logger: LoggingService
   ) {
-    super([] as DataResults[], 'key');
+    super([] as DataResults[], 'key','DataSource');
   }
 
   getDataSource(dataRequest: DataSourceRequest): Observable<DataResults> {
@@ -37,7 +37,9 @@ export class DataSourceService extends BaseStateArrayService<DataResults>{
 
     const currentCacheValue = this.getEntity(key);
     if (currentCacheValue) {
-      if (currentCacheValue.expiresWhen > new Date()) {
+      if (
+        currentCacheValue.expiresWhen && currentCacheValue.expiresWhen > new Date()
+      ) {
         // Return good cached value
         return of(currentCacheValue);
       } else {
@@ -47,7 +49,7 @@ export class DataSourceService extends BaseStateArrayService<DataResults>{
     }
 
     if (this.inflightRequests.has(key)) {
-      return this.inflightRequests.get(key);
+      return this.inflightRequests.get(key)!;
     }
 
     if(!dataRequest.inputData){
@@ -77,7 +79,7 @@ export class DataSourceService extends BaseStateArrayService<DataResults>{
 
     this.logger.info(
       `Calling Datasource ${dataRequest.name}`,
-      null,
+      '',
       logEntry.values
     );
 
@@ -98,9 +100,9 @@ export class DataSourceService extends BaseStateArrayService<DataResults>{
 
               // If expires Seconds not provided set long expiry
               const expiresSeconds =
-                values.expiresSeconds > 0 ? values.expiresSeconds : 99999999;
+                (values.expiresSeconds ?? 0) > 0 ? values.expiresSeconds : 99999999;
               const expiresWhen = new Date(
-                expiryNow.getTime() + expiresSeconds * 10000
+                expiryNow.getTime() + (expiresSeconds ?? 0) * 10000
               );
               const newResults: DataResults = {
                 expiresWhen,
@@ -144,7 +146,7 @@ export class DataSourceService extends BaseStateArrayService<DataResults>{
       })
     );
 
-    return this.inflightRequests.get(key);
+    return this.inflightRequests.get(key)!;
   }
 
   private getKey(dataRequest: DataSourceRequest) {

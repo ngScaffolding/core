@@ -1,8 +1,7 @@
 import { ErrorHandler, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { AppSettingsService } from '../appSettings/appSettings.service';
-import { NotificationService } from '../notification/notification.service';
+import { AppSettingsService } from '@ngscaffolding/core';
 import { AppSettings } from '@ngscaffolding/models';
 import { ErrorModel } from '@ngscaffolding/models';
 
@@ -17,9 +16,9 @@ export class CoreErrorHandlerService extends ErrorHandler {
     super();
   }
 
-  public logError(error, source: string = null) { }
+  public logError(error: any, source: string = '') { }
 
-  handleError(error, source: string = null) {
+  override handleError(error: any, source: string = '') {
     super.handleError(error);
 
     if (this.appSettingsService.getValue(AppSettings.errorLogConsole)) {
@@ -55,6 +54,4 @@ export class CoreErrorHandlerService extends ErrorHandler {
       // TODO: Show User Error
     }
   }
-
-  private processError(error, source: string = null) { }
 }

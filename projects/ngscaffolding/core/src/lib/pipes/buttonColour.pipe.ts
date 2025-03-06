@@ -1,7 +1,10 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { ButtonColours } from '@ngscaffolding/models';
 
-@Pipe({ name: 'buttonColour' })
+@Pipe({
+    name: 'buttonColour',
+    standalone: true
+})
 export class ButtonColourPipe implements PipeTransform {
   transform(inputColor: string): string {
     let returnColor: string;

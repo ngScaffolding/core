@@ -1,5 +1,4 @@
 import { NgModule, ModuleWithProviders } from '@angular/core';
-import { HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -16,26 +15,19 @@ import { FillHeightDirective } from './directives/fill-height.directive';
 // Services
 import { VersionsService } from './services/versions/versions.service';
 
-// Components
-import { DialogWindowComponent } from './components/dialogWindow/dialogWindow.component';
-
 import { VERSION } from './version';
 import { Optional } from '@angular/core';
 import { SkipSelf } from '@angular/core';
 import { ShowAuthDirective } from './directives/show-auth.directive';
 
 @NgModule({
-  imports: [CommonModule, FormsModule, HttpClientModule],
-  declarations: [
-    FillHeightDirective,
+    imports: [CommonModule, FormsModule, FillHeightDirective,
     ShowAuthDirective,
     ButtonColourPipe,
     NgsDatePipe,
     NgsDateTimePipe,
     TruncateTextPipe,
-    DateAgoPipe,
-    DialogWindowComponent,
-  ],
+        DateAgoPipe],
   exports: [
     ButtonColourPipe,
     NgsDatePipe,
@@ -44,7 +36,6 @@ import { ShowAuthDirective } from './directives/show-auth.directive';
     DateAgoPipe,
     FillHeightDirective,
     ShowAuthDirective,
-    DialogWindowComponent,
   ],
 })
 export class CoreModule {
