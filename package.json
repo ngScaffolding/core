@@ -7,7 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "publish": "npm publish dist/ngscaffolding/core",
-    "test": "ng test"
+    "test": "ng test",
+    "version": "cd projects/ngscaffolding/core && npm version patch && cd ../../.. && npm version patch && ng build"
   },
   "dependencies": {
     "@angular/animations": "^18.2.13",
