@@ -91,7 +91,7 @@ export class BaseStateArrayService<T> {
       this.state.push(state);
     });
 
-      this.stateUpdated.next(this.state);
+    this.stateUpdated.next(this.state);
 
     if (!bypassSave && this.isSaveToPreferences) {
       this.saveState();
@@ -158,9 +158,9 @@ export class BaseStateArrayService<T> {
           (newState as Record<string, any>)[this.key]?.toString()?.toUpperCase()
         ) {
           return { ...item, ...newState };
-    } else {
+        } else {
           return item;
-    }
+        }
       });
     }
 
@@ -198,7 +198,9 @@ export class BaseStateArrayService<T> {
         this.stateUpdated.next(this.state);
       }
     }
-    const localActive = (await (this.preferences.get({key:this.stateName + ':active:'}))).value;
+    const localActive = (
+      await this.preferences.get({ key: this.stateName + ':active:' })
+    ).value;
     if (!!localActive && localActive !== 'undefined') {
       const parsedActive = JSON.parse(localActive);
       if (parsedActive) {
@@ -208,13 +210,14 @@ export class BaseStateArrayService<T> {
     }
   }
 
-  private findValue(key: string): T {
+  private findValue(key: string): T | undefined {
     const foundValue = this.state.find(
       (searchItem) => (searchItem as any)[this.key] === key
     );
     if (!foundValue) {
       return undefined;
     }
+
     return foundValue;
   }
 

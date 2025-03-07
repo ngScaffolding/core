@@ -4,13 +4,13 @@ import { BaseEntity } from '@ngscaffolding/models';
 @Injectable()
 export abstract class UserAuthenticationBase {
     abstract getToken(): string;
-    abstract forceLogon(returnUrl: string);
-    abstract logon(userName: string, password: string);
-    abstract logoff();
+    abstract forceLogon(returnUrl: string): void | Promise<void>;
+    abstract logon(userName: string, password: string): void | Promise<void>;
+    abstract logoff(): void | Promise<void>;
 
-    abstract completeAuthentication();
+    abstract completeAuthentication(): void | Promise<void>;
     abstract isAuthenticated(): boolean;
-    abstract authorizationHeaderValue();
+    abstract authorizationHeaderValue(): string;
     abstract name(): string;
 
     abstract filterItemsByRole(authItems: BaseEntity[]): BaseEntity[];

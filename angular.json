@@ -12,38 +12,29 @@
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
-            "tsConfig": "projects/ngscaffolding/core/tsconfig.lib.json",
             "project": "projects/ngscaffolding/core/ng-package.json"
           },
           "configurations": {
             "production": {
               "tsConfig": "projects/ngscaffolding/core/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/ngscaffolding/core/tsconfig.lib.json"
             }
-          }
+          },
+          "defaultConfiguration": "production"
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "main": "projects/ngscaffolding/core/src/test.ts",
             "tsConfig": "projects/ngscaffolding/core/tsconfig.spec.json",
-            "karmaConfig": "projects/ngscaffolding/core/karma.conf.js"
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "projects/ngscaffolding/core/tsconfig.lib.json",
-              "projects/ngscaffolding/core/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
             ]
+          }
+          }
           }
         }
       }
-    }},
-  "cli": {
-    "analytics": false
   }
-}

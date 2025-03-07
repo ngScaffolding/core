@@ -29,8 +29,8 @@ export class AuditLogService {
   ) {
     appSettings.stateUpdated$.subscribe((appSettings) => {
       if (appSettings) {
-        this.polling = appSettings[AppSettings.mobileDefaultPolling];
-        this.retryVal = appSettings[AppSettings.mobileDefaultRetries];
+        this.polling = appSettings.value[AppSettings.mobileDefaultPolling];
+        this.retryVal = appSettings.value[AppSettings.mobileDefaultRetries];
       }
     });
     appSettings
@@ -50,7 +50,7 @@ export class AuditLogService {
     const workingLog = { ...this.defaultLog, ...auditLog };
     workingLog.id = uuidv4();
     if (!workingLog.logDate) {
-      workingLog.logDate = ZuluDateHelper.setGMTDate(new Date());
+      workingLog.logDate = ZuluDateHelper.setGMTDate(new Date()) || undefined;
     }
 
     if (!workingLog.userID) {
@@ -95,7 +95,7 @@ export class AuditLogService {
   }
 
   private startPolling() {
-    setInterval(_ => {
+    setInterval(() => {
       if (!this.isSending) {
         this.isSending = true;
         this.sendLogEntries();
