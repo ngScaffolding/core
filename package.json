@@ -1,6 +1,5 @@
 {
   "name": "@ngscaffolding/core",
-  "version": "18.0.4",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -8,7 +7,7 @@
     "watch": "ng build --watch --configuration development",
     "publish": "npm publish dist/ngscaffolding/core",
     "test": "ng test",
-    "version": "cd projects/ngscaffolding/core && npm version patch --no-git-tag-version && cd ../../.. && npm version patch --no-git-tag-version && ng build"
+    "version": "cd projects/ngscaffolding/core && npm version patch && cd ../../.. && ng build"
   },
   "dependencies": {
     "@angular/animations": "^18.2.13",
