@@ -4,8 +4,9 @@ import { timeout, retry } from 'rxjs/operators';
 import { ZuluDateHelper } from '@ngscaffolding/models';
 import { ApplicationLog } from '@ngscaffolding/models';
 import { AppSettings } from '@ngscaffolding/models';
-import { AppSettingsService } from '@ngscaffolding/core';
-import { UserAuthenticationService } from '@ngscaffolding/core';
+import { AppSettingsService } from '../appSettings/appSettings.service';
+import { UserAuthenticationService } from '../userAuthentication/userAuthentication.service';
+
 
 
 @Injectable({

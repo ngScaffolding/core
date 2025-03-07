@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { RolesService } from '@ngscaffolding/core';
 import { Observable } from 'rxjs';
 import { timeout } from 'rxjs/operators';
 import { UserServiceBase } from './user.service.base';
-import { AppSettingsService } from '@ngscaffolding/core';
 import { ChangePasswordModel } from '@ngscaffolding/models';
 import { IUserModel } from '@ngscaffolding/models';
 import { AppSettings } from '@ngscaffolding/models';
+import { AppSettingsService } from '../appSettings/appSettings.service';
+import { RolesService } from '../rolesService/roles.service';
 
 
 @Injectable({

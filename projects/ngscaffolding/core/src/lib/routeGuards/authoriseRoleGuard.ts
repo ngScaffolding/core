@@ -1,6 +1,6 @@
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { Injectable } from '@angular/core';
-import { UserAuthenticationService } from '@ngscaffolding/core';
+import { UserAuthenticationService } from '../services/userAuthentication/userAuthentication.service';
 
 
 @Injectable()

@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
-import { PERSISTENCE_LAYER } from '@ngscaffolding/models';
 import { BehaviorSubject, Observable, distinctUntilChanged, map } from 'rxjs';
+import { PERSISTENCE_LAYER } from '../persistence.interface';
 
 export class BaseStateArrayService<T> {
   protected state!: T[];

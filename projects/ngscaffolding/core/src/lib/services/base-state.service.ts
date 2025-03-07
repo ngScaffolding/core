@@ -1,6 +1,6 @@
 import { inject, Inject } from '@angular/core';
 import { BehaviorSubject, Observable, distinctUntilChanged, map } from 'rxjs';
-import { PERSISTENCE_LAYER } from '@ngscaffolding/models';
+import { PERSISTENCE_LAYER } from '../persistence.interface';
 
 export class BaseStateService<T extends object> {
     protected state: T | undefined;
@@ -120,7 +120,7 @@ export class BaseStateService<T extends object> {
     });
 
     // Save to local storage
-    if (this.saveToLocalStorage) {
+    if (this.saveToPreferences) {
       localStorage.setItem(
         'state' + this.constructor.name,
         JSON.stringify(this.state)

@@ -4,15 +4,16 @@ import { catchError, distinctUntilChanged, tap, timeout } from 'rxjs/operators';
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 
-import { AppSettingsService } from '@ngscaffolding/core';
-import { LoggingService } from '@ngscaffolding/core';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { Router } from '@angular/router';
-import { BasicUser, PERSISTENCE_LAYER } from '@ngscaffolding/models';
+import { BasicUser } from '@ngscaffolding/models';
 import { AppSettings } from '@ngscaffolding/models';
 import { BaseEntity } from '@ngscaffolding/models';
 import { BaseStateService } from '../base-state.service';
+import { AppSettingsService } from '../appSettings/appSettings.service';
+import { LoggingService } from '../logging/logging.service';
+import { PERSISTENCE_LAYER } from '../../persistence.interface';
 
 export interface AuthenticationState {
   authenticated: boolean;

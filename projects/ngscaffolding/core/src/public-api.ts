@@ -7,11 +7,13 @@ export { AppSettingsService } from './lib/services/appSettings/appSettings.servi
 export { AppAuditService } from './lib/services/appAudit/appAudit.service';
 export { AuditLogService } from './lib/services/auditLog/auditLog.service';
 
-export { BroadcastService, BroadcastTypes } from './lib/services/broadcast/broadcast.service';
+export {
+  BroadcastService,
+  BroadcastTypes,
+} from './lib/services/broadcast/broadcast.service';
 export { ComponentLoaderService } from './lib/services/componentLoader.service';
 export { CoreErrorHandlerService } from './lib/services/coreErrorHandler/coreErrorHandler.service';
 export { DataSourceService } from './lib/services/dataSource/dataSource.service';
-export { SocketService } from './lib/services/socket/socket.service';
 
 export { LoggingService } from './lib/services/logging/logging.service';
 export { MenuService } from './lib/services/menu/menu.service';
@@ -31,10 +33,13 @@ export { UserPreferencesService } from './lib/services/userPreferences/userPrefe
 
 export { WidgetService } from './lib/services/widgetsService/widget.service';
 
-
+export { UIStateService } from './lib/services/uiState/uiState.service';
 export { UserService } from './lib/services/userService/user.service';
 export { UserServiceBase } from './lib/services/userService/user.service.base';
-export { SoftwareVersion, VersionsService } from './lib/services/versions/versions.service';
+export {
+  SoftwareVersion,
+  VersionsService,
+} from './lib/services/versions/versions.service';
 
 export { FillHeightDirective } from './lib/directives/fill-height.directive';
 export { ShowAuthDirective } from './lib/directives/show-auth.directive';
@@ -50,5 +55,13 @@ export { DateAgoPipe } from './lib/pipes/date-ago.pipe';
 export { AuthoriseRoleGuard } from './lib/routeGuards/authoriseRoleGuard';
 
 export { DialogWindowComponent } from './lib/components/dialogWindow/dialogWindow.component';
+
+export {
+  GetOptions,
+  GetResult,
+  PERSISTENCE_LAYER,
+  PersistenceLayer,
+  SetOptions,
+} from './lib/persistence.interface';
 
 export { CoreModule } from './lib/core.module';

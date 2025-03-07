@@ -3,14 +3,15 @@ import { retry, timeout } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
-import { AppSettingsService } from '@ngscaffolding/core';
-import { LoggingService } from '@ngscaffolding/core';
-import { AppAuditService } from '@ngscaffolding/core';
+
 import { ApplicationLog } from '@ngscaffolding/models';
 import { AppSettings } from '@ngscaffolding/models';
 import { DataSourceRequest } from '@ngscaffolding/models';
 import { DataResults } from '@ngscaffolding/models';
-import { BaseStateArrayService } from '@ngscaffolding/core';
+import { AppAuditService } from '../appAudit/appAudit.service';
+import { AppSettingsService } from '../appSettings/appSettings.service';
+import { BaseStateArrayService } from '../base-state-array.service';
+import { LoggingService } from '../logging/logging.service';
 
 @Injectable({
   providedIn: 'root',

@@ -1,17 +1,17 @@
-import { RolesService } from '@ngscaffolding/core';
 import { Injectable } from '@angular/core';
 import { Route } from '@angular/router';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { timeout, finalize } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 
-import { LoggingService } from '@ngscaffolding/core';
 
 import { AppSettings } from '@ngscaffolding/models';
 import { CoreMenuItem, MenuTypes } from '@ngscaffolding/models';
-import { UserAuthenticationService } from '@ngscaffolding/core';
-import { AppSettingsService } from '@ngscaffolding/core';
-import { BaseStateService } from '@ngscaffolding/core';
+import { AppSettingsService } from '../appSettings/appSettings.service';
+import { BaseStateService } from '../base-state.service';
+import { LoggingService } from '../logging/logging.service';
+import { RolesService } from '../rolesService/roles.service';
+import { UserAuthenticationService } from '../userAuthentication/userAuthentication.service';
 
 export interface MenuState {
   menuItems?: CoreMenuItem[];

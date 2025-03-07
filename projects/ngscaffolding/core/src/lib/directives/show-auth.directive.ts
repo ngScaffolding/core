@@ -7,7 +7,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { UserAuthenticationService } from '@ngscaffolding/core';
+import { UserAuthenticationService } from '../services/userAuthentication/userAuthentication.service';
 
 // eslint-disable-next-line @angular-eslint/directive-selector
 @Directive({

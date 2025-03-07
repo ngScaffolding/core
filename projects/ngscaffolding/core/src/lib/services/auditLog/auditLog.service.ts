@@ -9,6 +9,7 @@ import { AppSettings } from '@ngscaffolding/models';
 import { AuditLog } from '@ngscaffolding/models';
 import { AppSettingsService } from '../appSettings/appSettings.service';
 import { UserAuthenticationService } from '../userAuthentication/userAuthentication.service';
+import { AppAuditService } from '../appAudit/appAudit.service';
 
 @Injectable({
   providedIn: 'root'
@@ -22,20 +23,21 @@ export class AuditLogService {
 
   constructor(
     private appSettings: AppSettingsService,
+    private auditLog: AuditLogService,
     private userService: UserAuthenticationService,
     private http: HttpClient
   ) {
     appSettings.stateUpdated$.subscribe((appSettings) => {
       if (appSettings) {
-        this.polling = appSettings.mobileDefaultPolling;
-        this.retryVal = appSettings.mobileDefaultRetries;
+        this.polling = appSettings[AppSettings.mobileDefaultPolling];
+        this.retryVal = appSettings[AppSettings.mobileDefaultRetries];
       }
     });
-    appSettingsQuery
-      .selectEntity(AppSettings.mobileDefaultPolling)
+    appSettings
+      .selectByName(AppSettings.mobileDefaultPolling)
       .subscribe(val => (this.polling = val.value > 0 ? val.value : 30000));
-    appSettingsQuery
-      .selectEntity(AppSettings.mobileDefaultRetries)
+    appSettings
+      .selectByName(AppSettings.mobileDefaultRetries)
       .subscribe(val => (this.retryVal = val.value > 0 ? val.value : 3));
     this.startPolling();
   }
@@ -55,7 +57,7 @@ export class AuditLogService {
       workingLog.userID = this.userService.getState().userDetails.userId;
     }
 
-    this.set(workingLog);
+    // this.set(workingLog);
     try {
     } catch (err) {
       console.log('Unable to send AppLog, offline?');
@@ -63,33 +65,33 @@ export class AuditLogService {
   }
 
   public sendLogEntries() {
-    const apiHome = this.appSettingsQuery.getEntity(AppSettings.apiHome).value;
-    const logEntries = this.auditLogQuery.getAll();
+    const apiHome = this.appSettings.getEntity(AppSettings.apiHome).value;
+    // const logEntries = this.auditLog.auditLog.();
 
-    if (logEntries && logEntries.length > 0) {
-      const keys = logEntries.map(log => log.id);
-      // This post is a fire and forget. Don't have to authorise either
-      this.http
-        .post(`${apiHome}/api/v1/auditlog`, logEntries)
-        .pipe(
-          timeout(30000),
-          retry(3),
-          finalize(() => {
-            this.isSending = false;
-          })
-        )
-        .subscribe(
-          data => {
-            this.auditLogStore.remove(keys);
-            // keys.forEach(key => this.auditLogStore.remove(({ id }) => id === key));
-          },
-          err => {
-            console.log('Unable to send AppLog, offline?');
-          }
-        );
-    } else {
-      this.isSending = false;
-    }
+    // if (logEntries && logEntries.length > 0) {
+    //   const keys = logEntries.map(log => log.id);
+    //   // This post is a fire and forget. Don't have to authorise either
+    //   this.http
+    //     .post(`${apiHome}/api/v1/auditlog`, logEntries)
+    //     .pipe(
+    //       timeout(30000),
+    //       retry(3),
+    //       finalize(() => {
+    //         this.isSending = false;
+    //       })
+    //     )
+    //     .subscribe(
+    //       data => {
+    //         this.auditLogStore.remove(keys);
+    //         // keys.forEach(key => this.auditLogStore.remove(({ id }) => id === key));
+    //       },
+    //       err => {
+    //         console.log('Unable to send AppLog, offline?');
+    //       }
+    //     );
+    // } else {
+    //   this.isSending = false;
+    // }
   }
 
   private startPolling() {

@@ -1,16 +1,16 @@
-import { RolesService } from '@ngscaffolding/core';
 import { Injectable } from '@angular/core';
 import { combineLatest } from 'rxjs';
 import { finalize, take } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 
-import { LoggingService } from '@ngscaffolding/core';
 
 import { AppSettings } from '@ngscaffolding/models';
 import { WidgetModelBase } from '@ngscaffolding/models';
 import { BaseStateArrayService } from '../base-state-array.service';
-import { AppSettingsService } from '@ngscaffolding/core';
-import { UserAuthenticationService } from '@ngscaffolding/core';
+import { LoggingService } from '../logging/logging.service';
+import { RolesService } from '../rolesService/roles.service';
+import { AppSettingsService } from '../appSettings/appSettings.service';
+import { UserAuthenticationService } from '../userAuthentication/userAuthentication.service';
 
 
 @Injectable({

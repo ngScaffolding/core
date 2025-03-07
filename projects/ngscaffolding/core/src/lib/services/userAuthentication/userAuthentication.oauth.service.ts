@@ -6,10 +6,9 @@ import { AppSettings } from '@ngscaffolding/models';
 import { BaseEntity } from '@ngscaffolding/models';
 import { LoggingService } from '../logging/logging.service';
 import { AppSettingsService } from '../appSettings/appSettings.service';
-import { UserAuthenticationService } from '@ngscaffolding/core';
 import { BaseStateService } from '../base-state.service';
 import { of } from 'rxjs';
-import { AuthenticationState } from './userAuthentication.service';
+import { AuthenticationState, UserAuthenticationService } from './userAuthentication.service';
 
 @Injectable({
     providedIn: 'root'

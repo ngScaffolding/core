@@ -3,12 +3,12 @@ import { Injectable } from '@angular/core';
 import { combineLatest } from 'rxjs';
 import { take, finalize } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
-import { DataSourceService } from '@ngscaffolding/core';
 import { AppSettings, Role } from '@ngscaffolding/models';
 import { SystemDataSourceNames } from '@ngscaffolding/models';
-import { BaseStateArrayService } from '@ngscaffolding/core';
-import { UserAuthenticationService } from '@ngscaffolding/core';
-import { AppSettingsService } from '@ngscaffolding/core';
+import { AppSettingsService } from '../appSettings/appSettings.service';
+import { BaseStateArrayService } from '../base-state-array.service';
+import { DataSourceService } from '../dataSource/dataSource.service';
+import { UserAuthenticationService } from '../userAuthentication/userAuthentication.service';
 
 @Injectable({
   providedIn: 'root'

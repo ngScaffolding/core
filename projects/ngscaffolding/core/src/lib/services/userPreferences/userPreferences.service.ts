@@ -2,17 +2,17 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, combineLatest } from 'rxjs';
 
-import { AppSettingsService } from '@ngscaffolding/core';
 
 // Models
-import { LoggingService } from '@ngscaffolding/core';
 import { AppSettings } from '@ngscaffolding/models';
 import {
   UserPreferenceValue,
   UserPreferenceDefinition,
 } from '@ngscaffolding/models';
-import { UserAuthenticationService } from '@ngscaffolding/core';
 import { BaseStateArrayService } from '../base-state-array.service';
+import { AppSettingsService } from '../appSettings/appSettings.service';
+import { LoggingService } from '../logging/logging.service';
+import { UserAuthenticationService } from '../userAuthentication/userAuthentication.service';
 
 @Injectable({
   providedIn: 'root',

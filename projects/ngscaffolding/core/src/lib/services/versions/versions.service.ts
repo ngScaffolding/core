@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { LoggingService } from '@ngscaffolding/core';
+import { LoggingService } from '../logging/logging.service';
 
 export class SoftwareVersion {
     module = '';

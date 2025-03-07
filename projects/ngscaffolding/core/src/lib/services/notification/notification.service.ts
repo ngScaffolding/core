@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BroadcastService, BroadcastTypes } from '@ngscaffolding/core';
+import { BroadcastService, BroadcastTypes } from '../../../public-api';
 
 @Injectable({
   providedIn: 'root',
